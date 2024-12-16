@@ -79,10 +79,12 @@ impl DataPlane {
             self.cfg.proxy.renewal.bind,
             self.cfg.proxy.renewal.port,
             web::token_app(),
-            ctx,
+            ctx.clone(),
             "token renewal",
         )
         .await?;
+
+        web::proxy::server::start(&self.cfg.proxy, ctx).await;
 
         Ok(DataPlaneHandle {
             id: self.cfg.component_id.clone(),

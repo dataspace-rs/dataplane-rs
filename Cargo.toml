@@ -36,3 +36,6 @@ pem = "3.0.4"
 ed25519-compact = "2.1.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 base64 = "0.22.1"
+pingora = { version = "0.4", features = ["openssl"] }
+pingora-proxy = "0.4.0"
+futures = "0.3.31"

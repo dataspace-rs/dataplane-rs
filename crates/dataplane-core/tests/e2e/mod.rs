@@ -1,7 +1,7 @@
 use std::{future::Future, time::Duration};
 
 use dataplane_core::{
-    core::model::namespace::EDC_NAMESPACE, default_bind, default_db,
+    core::model::namespace::EDC_NAMESPACE, default_bind, default_db, default_proxy_port,
     default_refresh_token_duration, default_renewal_port, default_signaling_port,
     default_token_duration, DataPlane, DataPlaneCfg, DataPlaneHandle, KeyFormat, Proxy, ProxyKeys,
     Signaling, TokenRenewal,
@@ -62,7 +62,7 @@ async fn init_dataplane(token_expiration: u64, refresh_token_expiration: u64) ->
         .proxy(
             Proxy::builder()
                 .issuer("issuer")
-                .proxy_url("http://localhost:8787/api/v1/public")
+                .proxy_url("http://localhost:8789/api/v1/public")
                 .token_duration(token_expiration)
                 .keys(
                     ProxyKeys::builder()
@@ -81,6 +81,8 @@ async fn init_dataplane(token_expiration: u64, refresh_token_expiration: u64) ->
                         .port(default_renewal_port())
                         .build(),
                 )
+                .bind(default_bind())
+                .port(default_proxy_port())
                 .build(),
         )
         .signaling(

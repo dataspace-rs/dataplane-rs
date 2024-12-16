@@ -2,7 +2,7 @@ component_id="dataplane"
 
 
 [db.sqlite]
-path = ":memory:"
+path = "dataplane.db"
 
 [signaling]
 control_plane_url = "http://localhost:29192/control"

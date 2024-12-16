@@ -3,7 +3,7 @@ use tracing::debug;
 use crate::{
     core::{
         db::transfer::TransferStoreRef,
-        model::transfer::{Transfer, TransferStatus},
+        model::transfer::{types::TransferKind, Transfer, TransferStatus},
     },
     signaling::{DataFlowResponseMessage, DataFlowStartMessage},
 };
@@ -26,6 +26,8 @@ impl<T: TokenManager> TransferManager<T> {
         req: DataFlowStartMessage,
     ) -> anyhow::Result<DataFlowResponseMessage> {
         let edr = self.edrs.create_edr(&req).await?;
+
+        let _ = TransferKind::try_from(&req.source_data_address)?;
 
         let transfer = Transfer::builder()
             .id(req.process_id.clone())
@@ -78,7 +80,7 @@ mod tests {
                 token::{MockTokenManager, TokenError},
             },
         },
-        signaling::{DataAddress, DataFlowStartMessage, FlowType},
+        signaling::{DataAddress, DataFlowStartMessage, EndpointProperty, FlowType},
     };
 
     use super::TransferManager;
@@ -184,8 +186,11 @@ mod tests {
             .process_id("process_id".to_string())
             .source_data_address(
                 DataAddress::builder()
-                    .endpoint_type("MyType".to_string())
-                    .endpoint_properties(vec![])
+                    .endpoint_type("HttpData".to_string())
+                    .endpoint_properties(vec![EndpointProperty::builder()
+                        .name(EDC_NAMESPACE.to_iri("baseUrl"))
+                        .value("http://localhost:8080")
+                        .build()])
                     .build(),
             )
             .properties(HashMap::new())

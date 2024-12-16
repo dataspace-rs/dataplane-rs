@@ -33,7 +33,10 @@ impl<T: TokenManager> RefreshManager<T> {
             .store
             .fetch_by_id(&claims.claims.transfer_id)
             .await?
-            .filter(|t| t.status == TransferStatus::Started)
+            .filter(|t| {
+                t.status == TransferStatus::Started
+                    && t.refresh_token_id == claims.claims.jti.into()
+            })
             .ok_or_else(|| {
                 RefreshError::Generic(anyhow::anyhow!("Transfer not found or not valid"))
             })?;

@@ -11,7 +11,7 @@ pub mod derive {
     pub use dataplane_macros::interface;
 }
 pub use config::{
-    default_bind, default_db, default_refresh_token_duration, default_renewal_port,
-    default_signaling_port, default_token_duration, DataPlaneCfg, Database, KeyFormat, Proxy,
-    ProxyKeys, Signaling, TokenRenewal,
+    default_bind, default_db, default_proxy_port, default_refresh_token_duration,
+    default_renewal_port, default_signaling_port, default_token_duration, DataPlaneCfg, Database,
+    KeyFormat, Proxy, ProxyKeys, Signaling, TokenRenewal,
 };

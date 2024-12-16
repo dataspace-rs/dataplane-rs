@@ -1,5 +1,6 @@
 /target
 
+dataplane.db
 testing/control-plane/.gradle
 testing/control-plane/build
 .idea

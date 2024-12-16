@@ -1,4 +1,4 @@
-use std::net::{IpAddr, TcpStream};
+use std::net::IpAddr;
 
 use axum::Router;
 use tokio::{
@@ -8,7 +8,7 @@ use tokio::{
 
 use crate::core::service::token::TokenManager;
 
-use super::state::Context;
+use super::{state::Context, util::wait_for_server};
 
 pub async fn start<T: TokenManager + Send + Sync + Clone + 'static>(
     bind: IpAddr,
@@ -34,12 +34,7 @@ pub async fn start<T: TokenManager + Send + Sync + Clone + 'static>(
         shutdown_notifier.send(()).unwrap();
     });
 
-    for _ in 0..10 {
-        if TcpStream::connect_timeout(&server_addr, std::time::Duration::from_millis(25)).is_ok() {
-            break;
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(25)).await;
-    }
+    wait_for_server(server_addr).await;
 
     Ok(ServerHandle::new(shutdown_trigger, shutdown_listener))
 }

@@ -35,6 +35,10 @@ pub struct TokenRenewal {
 
 #[derive(Deserialize, Clone, Builder)]
 pub struct Proxy {
+    #[serde(default = "default_proxy_port")]
+    pub port: u16,
+    #[serde(default = "default_bind")]
+    pub bind: IpAddr,
     #[builder(into)]
     pub proxy_url: Option<String>,
     #[builder(into)]
@@ -91,6 +95,9 @@ pub fn default_renewal_port() -> u16 {
     8788
 }
 
+pub fn default_proxy_port() -> u16 {
+    8789
+}
 pub fn default_token_duration() -> u64 {
     60 * 10
 }

@@ -33,7 +33,7 @@ async fn http_client() -> &'static Client {
 }
 
 #[tokio::test]
-async fn transfer_pull_test() {
+async fn transfer_pull_test_single() {
     let handle = launch_data_plane().await;
     let consumer = setup_consumer_client();
     let provider = setup_provider_client();

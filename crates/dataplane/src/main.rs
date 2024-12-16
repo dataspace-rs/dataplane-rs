@@ -1,4 +1,5 @@
 use dataplane_core::DataPlane;
+use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 #[tokio::main]
@@ -15,6 +16,7 @@ async fn main() -> anyhow::Result<()> {
         .start()
         .await?;
 
+    info!("DataPlane started");
     handle.wait().await?;
 
     Ok(())
