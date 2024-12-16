@@ -47,6 +47,7 @@ pub struct DataPlaneBuilder {
     cfg: DataPlaneCfgKind,
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum DataPlaneCfgKind {
     File(Option<PathBuf>),
     Input(DataPlaneCfg),
