@@ -70,7 +70,7 @@ impl DataPlane {
             self.cfg.signaling.port,
             web::signaling_app(),
             ctx.clone(),
-            "signaling"
+            "signaling",
         )
         .await?;
 
@@ -79,7 +79,7 @@ impl DataPlane {
             self.cfg.proxy.renewal.port,
             web::token_app(),
             ctx,
-            "token renewal"
+            "token renewal",
         )
         .await?;
 

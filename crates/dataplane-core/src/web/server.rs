@@ -1,14 +1,22 @@
 use std::net::{IpAddr, TcpStream};
 
 use axum::Router;
-use tokio::{net::TcpListener, sync::watch::{Receiver, Sender}};
+use tokio::{
+    net::TcpListener,
+    sync::watch::{Receiver, Sender},
+};
 
 use crate::core::service::token::TokenManager;
 
 use super::state::Context;
 
-pub async fn start<T : TokenManager + Send + Sync + Clone + 'static>(bind: IpAddr, port: u16, app: Router<Context<T>>, state : Context<T>, name : &'static str) -> anyhow::Result<ServerHandle> {
-
+pub async fn start<T: TokenManager + Send + Sync + Clone + 'static>(
+    bind: IpAddr,
+    port: u16,
+    app: Router<Context<T>>,
+    state: Context<T>,
+    name: &'static str,
+) -> anyhow::Result<ServerHandle> {
     let app = app.with_state(state);
     let listener = TcpListener::bind((bind, port)).await?;
     let server_addr = listener.local_addr()?;
@@ -35,7 +43,6 @@ pub async fn start<T : TokenManager + Send + Sync + Clone + 'static>(bind: IpAdd
 
     Ok(ServerHandle::new(shutdown_trigger, shutdown_listener))
 }
-
 
 pub struct ServerHandle {
     shutdown: Sender<()>,
