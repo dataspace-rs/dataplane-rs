@@ -1,0 +1,34 @@
+services:
+  consumer-connector:
+    image: ${CONNECTOR_IMAGE:-ghcr.io/dataspace-rs/control-plane:0.10.1}
+    ports:
+      - "19191:9191" # connector default
+      - "19192:9192" # connector control
+      - "19193:9193" # connector management
+    environment:
+      EDC_VAULT: /config/vault.properties
+      EDC_KEYSTORE: /config/vault-keys.p12
+      EDC_KEYSTORE_PASSWORD: 123456
+      EDC_FS_CONFIG: /config/configuration.properties
+    volumes:
+      - ./conf/consumer-connector.config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  provider-connector:
+    image: ${CONNECTOR_IMAGE:-ghcr.io/dataspace-rs/control-plane:0.10.1}
+    ports:
+      - "29191:9191" # connector default
+      - "29192:9192" # connector control
+      - "29193:9193" # connector management
+      - "29194:9194" # connector protocol
+      - "1044:1044" # connector protocol
+    environment:
+      EDC_VAULT: /config/vault.properties
+      EDC_KEYSTORE: /config/vault-keys.p12
+      EDC_KEYSTORE_PASSWORD: 123456
+      EDC_FS_CONFIG: /config/configuration.properties
+    volumes:
+      - ./conf/provider-connector.config:/config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

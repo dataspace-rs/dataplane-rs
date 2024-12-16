@@ -1,0 +1,24 @@
+component_id="dataplane"
+
+
+[db.sqlite]
+path = ":memory:"
+
+[signaling]
+control_plane_url = "http://localhost:29192/control"
+signaling_url = "http://host.docker.internal:8787/api/v1/dataflows"
+port = 8787
+
+
+[proxy]
+issuer="dataplane"
+
+[proxy.keys]
+private_key = "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIEYyuP04SkYFed00+sE1uiCcEmNh81EPMXqCzPwkxaqk\n-----END PRIVATE KEY-----"
+public_key = "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAyzCmi+B1BAbQJQ6sXqt1Jrfv3yIK1fqwf+3K2n3O9FM=\n-----END PUBLIC KEY-----"
+kid = "kid"
+algorithm = "EdDSA"
+format = "Pem"
+
+[proxy.renewal]
+port = 8788
