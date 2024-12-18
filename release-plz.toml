@@ -1,0 +1,23 @@
+[workspace]
+publish = false
+release = false
+git_release_enable = false
+changelog_config = "cliff.toml"
+changelog_update = false
+
+[[package]]
+name = "edc-dataplane-core"
+changelog_path = "edc-dataplane-core/CHANGELOG.md"
+publish = true
+release = true
+git_release_enable = true
+changelog_update = true
+git_tag_enable = true
+
+[[package]]
+name = "edc-dataplane-macros"
+publish = true
+release = true
+git_release_enable = true
+changelog_update = false
+git_tag_enable = true

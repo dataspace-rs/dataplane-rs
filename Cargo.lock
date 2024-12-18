@@ -737,67 +737,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
-name = "dataplane"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "dataplane-core",
- "sqlx",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "dataplane-core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "axum-extra",
- "axum-macros",
- "base64 0.22.1",
- "bon",
- "chrono",
- "config",
- "dashmap",
- "dataplane-macros",
- "derive_more",
- "ed25519-compact",
- "edc-connector-client",
- "futures",
- "jsonwebtoken",
- "mockall",
- "pingora",
- "pingora-proxy",
- "reqwest",
- "secrecy",
- "serde",
- "serde_json",
- "serde_with",
- "sqlx",
- "thiserror 2.0.4",
- "tokio",
- "tracing",
- "uuid",
- "wiremock",
-]
-
-[[package]]
-name = "dataplane-macros"
-version = "0.1.0"
-dependencies = [
- "attribute-derive",
- "darling",
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn 2.0.90",
- "synstructure 0.12.6",
-]
-
-[[package]]
 name = "deadpool"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -943,6 +882,67 @@ dependencies = [
  "serde_json",
  "serde_with",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "edc-dataplane"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "edc-dataplane-core",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "edc-dataplane-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "axum-extra",
+ "axum-macros",
+ "base64 0.22.1",
+ "bon",
+ "chrono",
+ "config",
+ "dashmap",
+ "derive_more",
+ "ed25519-compact",
+ "edc-connector-client",
+ "edc-dataplane-macros",
+ "futures",
+ "jsonwebtoken",
+ "mockall",
+ "pingora",
+ "pingora-proxy",
+ "reqwest",
+ "secrecy",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "sqlx",
+ "thiserror 2.0.4",
+ "tokio",
+ "tracing",
+ "uuid",
+ "wiremock",
+]
+
+[[package]]
+name = "edc-dataplane-macros"
+version = "0.1.0"
+dependencies = [
+ "attribute-derive",
+ "darling",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.90",
+ "synstructure 0.12.6",
 ]
 
 [[package]]

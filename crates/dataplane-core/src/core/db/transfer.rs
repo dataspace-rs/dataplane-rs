@@ -1,6 +1,6 @@
 use axum::async_trait;
 use bon::{builder, Builder};
-use dataplane_macros::interface;
+use edc_dataplane_macros::interface;
 
 use crate::core::model::transfer::{Transfer, TransferStatus};
 

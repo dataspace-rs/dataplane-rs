@@ -1,4 +1,4 @@
-use dataplane_core::DataPlane;
+use edc_dataplane_core::DataPlane;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
