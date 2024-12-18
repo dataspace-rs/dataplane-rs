@@ -1,5 +1,5 @@
 use axum::async_trait;
-use dataplane_core::core::db::sqlx::transfer::sqlite::SqliteTransferStore;
+use edc_dataplane_core::core::db::sqlx::transfer::sqlite::SqliteTransferStore;
 
 use crate::{generate_transfer_store_tests, store::Tester};
 

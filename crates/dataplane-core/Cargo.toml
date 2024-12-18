@@ -3,6 +3,11 @@ name = "edc-dataplane-core"
 version = "0.1.0"
 license.workspace = true
 edition.workspace = true
+description= "An EDC compatible dataplane"
+repository = "https://github.com/dataspace-rs/dataplane-rs"
+keywords = ["dataspace", "http", "dataplane"]
+categories = []
+readme = "README.md"
 
 [dependencies]
 edc-dataplane-macros = {  path = "../dataplane-macros", version = "0.1.0" }

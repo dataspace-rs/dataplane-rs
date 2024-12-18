@@ -1,6 +1,6 @@
 use std::{collections::HashMap, time::Duration};
 
-use dataplane_core::core::model::token::TokenResponse;
+use edc_dataplane_core::core::model::token::TokenResponse;
 use edc_connector_client::types::{
     data_address::DataAddress, transfer_process::TransferProcessState,
 };

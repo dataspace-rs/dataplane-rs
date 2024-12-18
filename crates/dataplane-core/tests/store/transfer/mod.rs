@@ -1,7 +1,7 @@
 use crate::store::Tester;
-use dataplane_core::core::db::transfer::TransferQuery;
-use dataplane_core::core::db::transfer::TransferStore;
-use dataplane_core::{
+use edc_dataplane_core::core::db::transfer::TransferQuery;
+use edc_dataplane_core::core::db::transfer::TransferStore;
+use edc_dataplane_core::{
     core::model::transfer::{Transfer, TransferStatus},
     signaling::DataAddress,
 };
