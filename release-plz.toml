@@ -7,7 +7,7 @@ changelog_update = false
 
 [[package]]
 name = "edc-dataplane-core"
-changelog_path = "crates/edc-dataplane-core/CHANGELOG.md"
+changelog_path = "crates/dataplane-core/CHANGELOG.md"
 publish = true
 release = true
 git_release_enable = true
