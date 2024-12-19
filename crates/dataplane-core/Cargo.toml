@@ -41,3 +41,4 @@ pingora-proxy.workspace=true
 mockall.workspace=true
 wiremock.workspace=true
 edc-connector-client.workspace=true
+tower.workspace=true

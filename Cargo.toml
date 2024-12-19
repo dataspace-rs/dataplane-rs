@@ -39,6 +39,7 @@ base64 = "0.22.1"
 pingora = { version = "0.4", features = ["openssl"] }
 pingora-proxy = "0.4.0"
 futures = "0.3.31"
+tower = { version = "0.5.1", features = ["util"] }
 
 # The profile that 'dist' will build with
 [profile.dist]

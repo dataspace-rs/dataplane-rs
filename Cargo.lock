@@ -929,6 +929,7 @@ dependencies = [
  "sqlx",
  "thiserror 2.0.8",
  "tokio",
+ "tower",
  "tracing",
  "uuid",
  "wiremock",
