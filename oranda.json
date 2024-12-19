@@ -1,0 +1,11 @@
+{
+    "project": {
+        "name": "dataplane-rs"
+    },
+    "build": {
+        "path_prefix": "dataplane-rs"
+    },
+    "styles": {
+        "theme": "hacker"
+    }
+}

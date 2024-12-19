@@ -1,4 +1,5 @@
 /target
+/public
 
 dataplane.db
 testing/control-plane/.gradle
