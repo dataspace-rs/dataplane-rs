@@ -888,7 +888,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -901,7 +901,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -936,7 +936,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane-macros"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "attribute-derive",
  "darling",

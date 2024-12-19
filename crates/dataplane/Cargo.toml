@@ -1,6 +1,6 @@
 [package]
 name = "edc-dataplane"
-version = "0.1.0"
+version = "0.1.1"
 license.workspace = true
 edition.workspace = true
 description= "An EDC compatible dataplane"
@@ -17,4 +17,4 @@ tokio.workspace=true
 tracing.workspace=true
 tracing-subscriber.workspace=true
 anyhow.workspace=true
-edc-dataplane-core= { path = "../dataplane-core" , version = "0.1.0" }
+edc-dataplane-core= { path = "../dataplane-core" , version = "0.1.1" }

@@ -1,6 +1,6 @@
 [package]
 name = "edc-dataplane-core"
-version = "0.1.0"
+version = "0.1.1"
 license.workspace = true
 edition.workspace = true
 description= "An EDC compatible dataplane"
@@ -10,7 +10,7 @@ categories = []
 readme = "README.md"
 
 [dependencies]
-edc-dataplane-macros = {  path = "../dataplane-macros", version = "0.1.0" }
+edc-dataplane-macros = {  path = "../dataplane-macros", version = "0.1.1" }
 axum.workspace=true
 axum-macros.workspace=true
 axum-extra.workspace=true
