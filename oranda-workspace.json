@@ -1,0 +1,21 @@
+{
+  "build": {
+    "path_prefix": "dataplane-rs"
+  },
+  "styles": {
+    "theme": "hacker"
+  },
+  "workspace": {
+    "name": "DataPlane Rust",
+    "members": [
+      {
+        "slug": "dataplane-rs/dataplane-core",
+        "path": "./crates/dataplane-core"
+      },
+      {
+        "slug": "dataplane-rs/dataplane",
+        "path": "./crates/dataplane"
+      }
+    ]
+  }
+}
