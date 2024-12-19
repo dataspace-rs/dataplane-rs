@@ -39,3 +39,8 @@ base64 = "0.22.1"
 pingora = { version = "0.4", features = ["openssl"] }
 pingora-proxy = "0.4.0"
 futures = "0.3.31"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"

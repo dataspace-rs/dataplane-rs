@@ -15,6 +15,15 @@ changelog_update = true
 git_tag_enable = true
 
 [[package]]
+name = "edc-dataplane"
+changelog_path = "crates/dataplane/CHANGELOG.md"
+publish = true
+release = true
+git_release_enable = true
+changelog_update = true
+git_tag_enable = true
+
+[[package]]
 name = "edc-dataplane-macros"
 publish = true
 release = true
