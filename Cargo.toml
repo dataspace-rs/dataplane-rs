@@ -25,7 +25,7 @@ bon = "3.3.0"
 uuid = { version = "1.11.0", features = ["v4", "serde"]}
 derive_more = { version= "1.0.0", features = ["from", "into"]}
 jsonwebtoken = "9.3.0"
-chrono = { version = "0.4.38", features = ["serde"]}
+chrono = { version = "0.4.39", features = ["serde"]}
 dashmap = "6.1.0"
 thiserror = "2.0.8"
 mockall = "0.13.1"
