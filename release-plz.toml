@@ -19,7 +19,7 @@ name = "edc-dataplane"
 changelog_path = "crates/dataplane/CHANGELOG.md"
 publish = true
 release = true
-git_release_enable = true
+git_release_enable = false
 changelog_update = true
 git_tag_enable = true
 
