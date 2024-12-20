@@ -917,6 +917,7 @@ dependencies = [
  "edc-connector-client",
  "edc-dataplane-macros",
  "futures",
+ "http-body-util",
  "jsonwebtoken",
  "mockall",
  "pingora",

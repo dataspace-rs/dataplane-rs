@@ -1,6 +1,5 @@
 mod api;
 mod context;
-mod error;
 pub mod proxy;
 mod router;
 pub mod server;

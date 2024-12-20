@@ -40,6 +40,7 @@ pingora = { version = "0.4", features = ["openssl"] }
 pingora-proxy = "0.4.0"
 futures = "0.3.31"
 tower = { version = "0.5.1", features = ["util"] }
+http-body-util = "0.1.2"
 
 # The profile that 'dist' will build with
 [profile.dist]

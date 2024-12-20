@@ -23,7 +23,7 @@ pub enum FlowType {
     Pull,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Builder)]
 #[serde(rename_all = "camelCase")]
 pub struct DataFlowResponseMessage {
     pub data_address: Option<DataAddress>,
@@ -53,12 +53,6 @@ impl DataFlowResponseMessage {
     pub fn new() -> Self {
         Self { data_address: None }
     }
-
-    pub fn with_data_address(data_address: DataAddress) -> Self {
-        Self {
-            data_address: Some(data_address),
-        }
-    }
 }
 
 #[serde_as]
@@ -66,6 +60,7 @@ impl DataFlowResponseMessage {
 #[serde(rename_all = "camelCase")]
 pub struct DataAddress {
     #[serde(rename = "dspace:endpointType")]
+    #[builder(into)]
     pub endpoint_type: String,
     #[serde_as(deserialize_as = "OneOrMany<_, PreferMany>")]
     #[serde(rename = "dspace:endpointProperties")]

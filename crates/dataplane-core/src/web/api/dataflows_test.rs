@@ -1,100 +1,38 @@
 mod start {
-    use std::{collections::HashMap, sync::Arc};
-
     use axum::{body::Body, http::Request, Router};
-    use chrono::Duration;
-    use jsonwebtoken::{jwk::JwkSet, TokenData};
+    use http_body_util::BodyExt;
     use reqwest::{header::CONTENT_TYPE, StatusCode};
-    use serde::{de::DeserializeOwned, Serialize};
+    use serde_json::{json, Value};
     use tower::ServiceExt;
-    use uuid::Uuid;
 
     use crate::{
         core::{
-            db::transfer::{MockTransferStore, TransferStoreRef},
-            service::{
-                edr::EdrManager,
-                refresh::RefreshManager,
-                token::{MockTokenManager, TokenError, TokenManager},
-                transfer::TransferManager,
-            },
+            db::transfer::MockTransferStore,
+            model::{edr::EdrClaims, namespace::EDC_NAMESPACE},
+            service::token::MockTokenManager,
         },
-        signaling::{DataAddress, DataFlowStartMessage, FlowType},
-        web::{signaling_app, state::Context},
+        signaling::DataFlowResponseMessage,
+        web::{
+            api::fixtures::{
+                create_context, create_start_request, create_start_request_with_type,
+                MockTokenManagerWrapper,
+            },
+            signaling_app,
+        },
     };
-
-    fn create_edr_manager(mock: MockTokenManagerWrapper) -> EdrManager<MockTokenManagerWrapper> {
-        EdrManager::builder()
-            .tokens(mock)
-            .proxy_url("http://localhost:8080/public")
-            .issuer("issuer")
-            .token_duration(Duration::days(1))
-            .token_url("http://localhost:8080/token")
-            .jwks_url("http://localhost:8080/.well-known/jwks.json")
-            .build()
-    }
-
-    fn create_transfer_manager(
-        edrs: EdrManager<MockTokenManagerWrapper>,
-        store: TransferStoreRef,
-    ) -> TransferManager<MockTokenManagerWrapper> {
-        TransferManager::new(edrs, store)
-    }
-
-    fn create_context(
-        mock: MockTokenManager,
-        store: MockTransferStore,
-    ) -> Context<MockTokenManagerWrapper> {
-        let store = TransferStoreRef::of(store);
-        let wrapper = MockTokenManagerWrapper(Arc::new(mock));
-        let edrs = create_edr_manager(wrapper.clone());
-        let transfer_manager = create_transfer_manager(edrs.clone(), store.clone());
-        let refresh_manager = RefreshManager::new(edrs.clone(), store.clone());
-
-        Context::new(transfer_manager, wrapper, edrs, refresh_manager)
-    }
-
-    #[derive(Clone)]
-    pub struct MockTokenManagerWrapper(Arc<MockTokenManager>);
-
-    impl TokenManager for MockTokenManagerWrapper {
-        fn issue<T: Serialize + 'static>(&self, claims: &T) -> Result<String, TokenError> {
-            self.0.issue(claims)
-        }
-
-        fn validate<T: DeserializeOwned + 'static>(
-            &self,
-            token: &str,
-        ) -> Result<TokenData<T>, TokenError> {
-            self.0.validate(token)
-        }
-
-        fn keys(&self) -> Result<JwkSet, TokenError> {
-            self.0.keys()
-        }
-    }
-
-    fn create_req() -> DataFlowStartMessage {
-        DataFlowStartMessage::builder()
-            .participant_id("participant_id".to_string())
-            .process_id("process_id".to_string())
-            .source_data_address(
-                DataAddress::builder()
-                    .endpoint_type("MyType".to_string())
-                    .endpoint_properties(vec![])
-                    .build(),
-            )
-            .properties(HashMap::new())
-            .flow_type(FlowType::Pull)
-            .dataset_id(Uuid::new_v4().to_string())
-            .agreement_id(Uuid::new_v4().to_string())
-            .build()
-    }
 
     #[tokio::test]
     async fn start() {
-        let tokens = MockTokenManager::new();
-        let store = MockTransferStore::new();
+        let mut tokens = MockTokenManager::new();
+        tokens
+            .expect_issue::<EdrClaims>()
+            .returning(|_: &EdrClaims| Ok("token".to_string()));
+        let mut store = MockTransferStore::new();
+
+        store
+            .expect_save()
+            .returning(|_| Box::pin(async { Ok(()) }));
+
         let ctx = create_context(tokens, store);
         let app: Router = signaling_app::<MockTokenManagerWrapper>().with_state(ctx);
 
@@ -104,12 +42,61 @@ mod start {
                     .uri("/api/v1/dataflows")
                     .method("POST")
                     .header(CONTENT_TYPE, "application/json")
-                    .body(Body::from(serde_json::to_vec(&create_req()).unwrap()))
+                    .body(Body::from(
+                        serde_json::to_vec(&create_start_request()).unwrap(),
+                    ))
                     .unwrap(),
             )
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::OK);
+        let status = response.status();
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        assert_eq!(status, StatusCode::OK, "{}", body_str);
+
+        let flow_response: DataFlowResponseMessage = serde_json::from_str(&body_str).unwrap();
+        let token = flow_response
+            .data_address
+            .as_ref()
+            .and_then(|dad| dad.get_property(&EDC_NAMESPACE.to_iri("access_token")));
+
+        assert_eq!(token, Some("token"));
+    }
+
+    #[tokio::test]
+    async fn start_fails_with_invalid_datasource() {
+        let tokens = MockTokenManager::new();
+        let store = MockTransferStore::new();
+
+        let ctx = create_context(tokens, store);
+        let app: Router = signaling_app::<MockTokenManagerWrapper>().with_state(ctx);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/dataflows")
+                    .method("POST")
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        serde_json::to_vec(&create_start_request_with_type("FakeType")).unwrap(),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let status = response.status();
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
+
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{}", body_str);
+
+        assert_eq!(
+            serde_json::from_str::<Value>(&body_str).unwrap(),
+            json!({
+            "error": "Invalid Source Data Address"})
+        );
     }
 }

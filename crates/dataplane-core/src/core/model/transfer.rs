@@ -30,6 +30,7 @@ pub mod types {
 
     use crate::{core::model::namespace::EDC_NAMESPACE, signaling::DataAddress};
 
+    #[derive(Debug)]
     pub enum TransferKind {
         HttpData(HttpData),
     }
@@ -48,6 +49,7 @@ pub mod types {
         }
     }
 
+    #[derive(Debug)]
     pub struct HttpData {
         pub base_url: Uri,
         pub proxy_path: bool,

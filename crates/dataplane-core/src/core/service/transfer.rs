@@ -8,7 +8,10 @@ use crate::{
     signaling::{DataFlowResponseMessage, DataFlowStartMessage},
 };
 
-use super::{edr::EdrManager, token::TokenManager};
+use super::{
+    edr::{EdrError, EdrManager},
+    token::TokenManager,
+};
 
 #[derive(Clone)]
 pub struct TransferManager<T: TokenManager> {
@@ -24,10 +27,11 @@ impl<T: TokenManager> TransferManager<T> {
     pub async fn start(
         &self,
         req: DataFlowStartMessage,
-    ) -> anyhow::Result<DataFlowResponseMessage> {
-        let edr = self.edrs.create_edr(&req).await?;
+    ) -> SignalingResult<DataFlowResponseMessage> {
+        let _ = TransferKind::try_from(&req.source_data_address)
+            .map_err(SignalingError::InvalidSourceDataAddress)?;
 
-        let _ = TransferKind::try_from(&req.source_data_address)?;
+        let edr = self.edrs.create_edr(&req).await?;
 
         let transfer = Transfer::builder()
             .id(req.process_id.clone())
@@ -38,7 +42,9 @@ impl<T: TokenManager> TransferManager<T> {
             .build();
 
         self.db.save(transfer).await?;
-        Ok(DataFlowResponseMessage::with_data_address(edr.data_address))
+        Ok(DataFlowResponseMessage::builder()
+            .data_address(edr.data_address)
+            .build())
     }
 
     pub async fn get(&self, id: &str) -> anyhow::Result<Option<Transfer>> {
@@ -58,6 +64,18 @@ impl<T: TokenManager> TransferManager<T> {
         );
         self.db.delete(&id).await
     }
+}
+
+pub type SignalingResult<T> = Result<T, SignalingError>;
+
+#[derive(thiserror::Error, Debug)]
+pub enum SignalingError {
+    #[error("Invalid source data address")]
+    InvalidSourceDataAddress(anyhow::Error),
+    #[error(transparent)]
+    EdrError(#[from] EdrError),
+    #[error(transparent)]
+    GenericError(#[from] anyhow::Error),
 }
 
 #[cfg(test)]
