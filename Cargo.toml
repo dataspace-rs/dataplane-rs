@@ -27,7 +27,7 @@ derive_more = { version= "1.0.0", features = ["from", "into"]}
 jsonwebtoken = "9.3.0"
 chrono = { version = "0.4.39", features = ["serde"]}
 dashmap = "6.1.0"
-thiserror = "2.0.9"
+thiserror = "2.0.10"
 mockall = "0.13.1"
 wiremock = "0.6.2"
 edc-connector-client = "0.3.7"
