@@ -32,7 +32,7 @@ mockall = "0.13.1"
 wiremock = "0.6.2"
 edc-connector-client = "0.3.7"
 ring = "0.17.4"
-pem = "3.0.4"
+pem = "3.0.5"
 ed25519-compact = "2.1.1"
 secrecy = {version = "0.10.3", features = ["serde"]}
 base64 = "0.22.1"
