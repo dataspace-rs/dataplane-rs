@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Starting EDC Servers
         run: |
-          export CONNECTOR_IMAGE=ghcr.io/dataspace-rs/control-plane:latest
+          export CONNECTOR_IMAGE=ghcr.io/dataspace-rs/controlplane:latest
           docker compose -f ./testing/docker-compose.yml up -d
 
       - uses: actions/checkout@v2
