@@ -99,12 +99,11 @@ impl DataPlane {
         let store = self.create_transfer_store().await?;
 
         let transfer_manager = TransferManager::new(edr_manager.clone(), store.clone());
-        let refresh_manager = RefreshManager::new(edr_manager.clone(), store);
+        let refresh_manager = RefreshManager::new(edr_manager, store);
 
         let ctx = Context::new(
             transfer_manager,
             token_manager,
-            edr_manager,
             refresh_manager,
         );
         Ok(ctx)
