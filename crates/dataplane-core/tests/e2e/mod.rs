@@ -120,8 +120,7 @@ pub async fn seed(
     let asset = NewAsset::builder()
         .id(Uuid::new_v4().to_string().as_str())
         .data_address(data_address)
-        .build()
-        .unwrap();
+        .build();
 
     let asset_response = client.assets().create(&asset).await.unwrap();
 
@@ -141,8 +140,7 @@ pub async fn seed(
         ))
         .access_policy_id(policy_response.id())
         .contract_policy_id(policy_response.id())
-        .build()
-        .unwrap();
+        .build();
 
     let definition_response = client
         .contract_definitions()
@@ -167,8 +165,7 @@ pub async fn seed_contract_negotiation(
     let dataset_request = DatasetRequest::builder()
         .counter_party_address(PROVIDER_PROTOCOL)
         .id(&asset_id)
-        .build()
-        .unwrap();
+        .build();
 
     let dataset = consumer
         .catalogue()
@@ -183,14 +180,13 @@ pub async fn seed_contract_negotiation(
         .counter_party_id(PROVIDER_ID)
         .policy(
             Policy::builder()
-                .id(&offer_id)
+                .id(offer_id)
                 .kind(PolicyKind::Offer)
                 .assigner(PROVIDER_ID)
                 .target(Target::id(&asset_id))
                 .build(),
         )
-        .build()
-        .unwrap();
+        .build();
 
     let response = consumer
         .contract_negotiations()
@@ -254,8 +250,7 @@ pub async fn seed_transfer_process(
         .contract_id(&agreement_id)
         .transfer_type("HttpData-PULL")
         .destination(DataAddress::builder().kind("HttpProxy").build().unwrap())
-        .build()
-        .unwrap();
+        .build();
 
     let response = consumer
         .transfer_processes()
