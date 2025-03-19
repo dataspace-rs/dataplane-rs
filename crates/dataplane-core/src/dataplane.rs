@@ -101,11 +101,7 @@ impl DataPlane {
         let transfer_manager = TransferManager::new(edr_manager.clone(), store.clone());
         let refresh_manager = RefreshManager::new(edr_manager, store);
 
-        let ctx = Context::new(
-            transfer_manager,
-            token_manager,
-            refresh_manager,
-        );
+        let ctx = Context::new(transfer_manager, token_manager, refresh_manager);
         Ok(ctx)
     }
     fn create_token_manager(&self) -> anyhow::Result<TokenManagerImpl> {
