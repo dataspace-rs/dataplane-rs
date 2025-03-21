@@ -2,6 +2,7 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use bon::Builder;
 use ed25519_compact::PublicKey;
+use edc_dataplane_core::config::KeyFormat;
 use jsonwebtoken::{jwk::JwkSet, Algorithm, DecodingKey, EncodingKey, TokenData};
 use secrecy::{ExposeSecret, SecretString};
 use serde::{de::DeserializeOwned, Serialize};
@@ -10,8 +11,6 @@ use thiserror::Error;
 
 #[cfg(test)]
 use mockall::{automock, predicate::*};
-
-use crate::KeyFormat;
 
 #[cfg_attr(test, automock)]
 pub trait TokenManager {
@@ -125,13 +124,11 @@ pub enum TokenError {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        core::service::token::{TokenError, TokenManager},
-        KeyFormat,
-    };
+    use crate::service::token::{TokenError, TokenManager};
 
     use super::TokenManagerImpl;
     use ed25519_compact::{KeyPair, Seed};
+    use edc_dataplane_core::config::KeyFormat;
     use jsonwebtoken::{errors::ErrorKind, Algorithm};
     use serde_json::{json, Value};
 

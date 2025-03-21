@@ -1,9 +1,8 @@
 use bon::Builder;
 use derive_more::{From, Into};
+use edc_dataplane_core::signaling::DataAddress;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::signaling::DataAddress;
 
 #[derive(Builder)]
 pub struct Edr {

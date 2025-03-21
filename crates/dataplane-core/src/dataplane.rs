@@ -4,38 +4,33 @@ use jsonwebtoken::Algorithm;
 use std::{path::PathBuf, str::FromStr};
 
 use crate::{
+    config::DataPlaneCfg,
     config::Database,
     core::{
-        db::{sqlx::transfer::sqlite::SqliteTransferStore, transfer::TransferStoreRef},
-        service::{
-            edr::EdrManager, refresh::RefreshManager, token::TokenManagerImpl,
-            transfer::TransferManager,
-        },
+        db::{sqlx::transfer::sqlite::SqliteTransferRepo, transfer::TransferRepoRef},
+        service::transfer::{TransferManager, TransferManagerRef, TransferService},
     },
     registration::register_dataplane,
     web::{self, server::ServerHandle, state::Context},
-    DataPlaneCfg,
 };
 
 pub struct DataPlane {
     cfg: DataPlaneCfg,
+    manager: TransferManagerRef,
 }
 
 pub struct DataPlaneHandle {
     id: String,
     signaling_server: ServerHandle,
-    token_server: ServerHandle,
 }
 
 impl DataPlaneHandle {
     pub async fn shutdown(self) {
         self.signaling_server.shutdown().await;
-        self.token_server.shutdown().await;
     }
 
     pub async fn wait(&mut self) -> anyhow::Result<()> {
-        self.signaling_server.wait().await?;
-        self.token_server.wait().await
+        self.signaling_server.wait().await
     }
 
     pub fn id(&self) -> &str {
@@ -45,6 +40,7 @@ impl DataPlaneHandle {
 
 pub struct DataPlaneBuilder {
     cfg: DataPlaneCfgKind,
+    manager: Option<TransferManagerRef>,
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -57,6 +53,7 @@ impl DataPlane {
     pub fn builder() -> DataPlaneBuilder {
         DataPlaneBuilder {
             cfg: DataPlaneCfgKind::File(None),
+            manager: None,
         }
     }
 
@@ -75,90 +72,89 @@ impl DataPlane {
         )
         .await?;
 
-        let token_server = web::server::start(
-            self.cfg.proxy.renewal.bind,
-            self.cfg.proxy.renewal.port,
-            web::token_app(),
-            ctx.clone(),
-            "token renewal",
-        )
-        .await?;
+        // let token_server = web::server::start(
+        //     self.cfg.proxy.renewal.bind,
+        //     self.cfg.proxy.renewal.port,
+        //     web::token_app(),
+        //     ctx.clone(),
+        //     "token renewal",
+        // )
+        // .await?;
 
-        web::proxy::server::start(&self.cfg.proxy, ctx).await;
+        // web::proxy::server::start(&self.cfg.proxy, ctx).await;
 
         Ok(DataPlaneHandle {
             id: self.cfg.component_id.clone(),
             signaling_server,
-            token_server,
         })
     }
 
-    async fn create_context(&self) -> Result<Context<TokenManagerImpl>, anyhow::Error> {
-        let token_manager = self.create_token_manager()?;
-        let edr_manager = self.create_edr_manager(&token_manager)?;
+    async fn create_context(&self) -> Result<Context, anyhow::Error> {
+        // let token_manager = self.create_token_manager()?;
+        // let edr_manager = self.create_edr_manager(&token_manager)?;
         let store = self.create_transfer_store().await?;
 
-        let transfer_manager = TransferManager::new(edr_manager.clone(), store.clone());
-        let refresh_manager = RefreshManager::new(edr_manager, store);
+        let transfer_manager = TransferService::new(self.manager.clone(), store.clone());
+        // let refresh_manager = RefreshManager::new(edr_manager, store);
 
-        let ctx = Context::new(transfer_manager, token_manager, refresh_manager);
+        let ctx = Context::new(transfer_manager);
         Ok(ctx)
     }
-    fn create_token_manager(&self) -> anyhow::Result<TokenManagerImpl> {
-        let proxy_url = self.cfg.proxy.proxy_url.clone().unwrap_or_else(|| {
-            format!("http://localhost:{}/api/v1/public", self.cfg.signaling.port)
-        });
+    // fn create_token_manager(&self) -> anyhow::Result<TokenManagerImpl> {
+    //     let proxy_url = self.cfg.proxy.proxy_url.clone().unwrap_or_else(|| {
+    //         format!("http://localhost:{}/api/v1/public", self.cfg.signaling.port)
+    //     });
 
-        Ok(TokenManagerImpl::builder()
-            .encoding_key(self.cfg.proxy.keys.private_key.clone())
-            .decoding_key(&self.cfg.proxy.keys.public_key)
-            .algorithm(Algorithm::from_str(&self.cfg.proxy.keys.algorithm)?)
-            .audience(proxy_url)
-            .kid(self.cfg.proxy.keys.kid.clone())
-            .format(self.cfg.proxy.keys.format)
-            .leeway(self.cfg.proxy.token_leeway)
-            .build())
-    }
+    //     Ok(TokenManagerImpl::builder()
+    //         .encoding_key(self.cfg.proxy.keys.private_key.clone())
+    //         .decoding_key(&self.cfg.proxy.keys.public_key)
+    //         .algorithm(Algorithm::from_str(&self.cfg.proxy.keys.algorithm)?)
+    //         .audience(proxy_url)
+    //         .kid(self.cfg.proxy.keys.kid.clone())
+    //         .format(self.cfg.proxy.keys.format)
+    //         .leeway(self.cfg.proxy.token_leeway)
+    //         .build())
+    // }
 
-    fn create_edr_manager(
-        &self,
-        tokens: &TokenManagerImpl,
-    ) -> anyhow::Result<EdrManager<TokenManagerImpl>> {
-        let token_duration = Duration::seconds(self.cfg.proxy.token_duration as i64);
-        let refresh_token_duration =
-            Duration::seconds(self.cfg.proxy.refresh_token_duration as i64);
+    // fn create_edr_manager(
+    //     &self,
+    //     tokens: &TokenManagerImpl,
+    // ) -> anyhow::Result<EdrManager<TokenManagerImpl>> {
+    //     let token_duration = Duration::seconds(self.cfg.proxy.token_duration as i64);
+    //     let refresh_token_duration =
+    //         Duration::seconds(self.cfg.proxy.refresh_token_duration as i64);
 
-        let token_url = self.cfg.proxy.token_url.clone().unwrap_or_else(|| {
-            format!(
-                "http://localhost:{}/api/v1/token",
-                self.cfg.proxy.renewal.port
-            )
-        });
+    //     let token_url = self.cfg.proxy.token_url.clone().unwrap_or_else(|| {
+    //         format!(
+    //             "http://localhost:{}/api/v1/token",
+    //             self.cfg.proxy.renewal.port
+    //         )
+    //     });
 
-        let jwks_url = self.cfg.proxy.jwks_url.clone().unwrap_or_else(|| {
-            format!(
-                "http://localhost:{}/.well-known/jwks.json",
-                self.cfg.proxy.renewal.port
-            )
-        });
-        Ok(EdrManager::builder()
-            .tokens(tokens.clone())
-            .proxy_url(tokens.audience().to_string())
-            .issuer(self.cfg.proxy.issuer.clone())
-            .token_duration(token_duration)
-            .refresh_token_duration(refresh_token_duration)
-            .token_url(token_url)
-            .jwks_url(jwks_url)
-            .build())
-    }
+    //     let jwks_url = self.cfg.proxy.jwks_url.clone().unwrap_or_else(|| {
+    //         format!(
+    //             "http://localhost:{}/.well-known/jwks.json",
+    //             self.cfg.proxy.renewal.port
+    //         )
+    //     });
+    //     Ok(EdrManager::builder()
+    //         .tokens(tokens.clone())
+    //         .proxy_url(tokens.audience().to_string())
+    //         .issuer(self.cfg.proxy.issuer.clone())
+    //         .token_duration(token_duration)
+    //         .refresh_token_duration(refresh_token_duration)
+    //         .token_url(token_url)
+    //         .jwks_url(jwks_url)
+    //         .build())
+    // }
 
-    async fn create_transfer_store(&self) -> anyhow::Result<TransferStoreRef> {
+    async fn create_transfer_store(&self) -> anyhow::Result<TransferRepoRef> {
         match &self.cfg.db {
             Database::Sqlite { path } => {
-                let store = SqliteTransferStore::connect(&format!("sqlite:{}", path)).await?;
+                let store = SqliteTransferRepo::connect(&format!("sqlite:{}", path)).await?;
                 store.migrate().await?;
 
-                Ok(TransferStoreRef::of(store))
+                Ok(TransferRepoRef::of(store))
             }
         }
     }
@@ -168,6 +164,14 @@ impl DataPlaneBuilder {
     pub fn with_config_file(mut self, cfg: Option<String>) -> DataPlaneBuilder {
         self.cfg = DataPlaneCfgKind::File(cfg.map(PathBuf::from));
 
+        self
+    }
+
+    pub fn with_transfer_manager(
+        mut self,
+        manager: impl TransferManager + Send + Sync + 'static,
+    ) -> DataPlaneBuilder {
+        self.manager = Some(TransferManagerRef::of(manager));
         self
     }
 
@@ -196,6 +200,11 @@ impl DataPlaneBuilder {
             DataPlaneCfgKind::Input(cfg) => cfg,
         };
 
-        Ok(DataPlane { cfg })
+        Ok(DataPlane {
+            cfg,
+            manager: self
+                .manager
+                .ok_or_else(|| anyhow::anyhow!("Missing transfer manager"))?,
+        })
     }
 }

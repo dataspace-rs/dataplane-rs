@@ -2,7 +2,7 @@ use reqwest::Response;
 use serde_json::json;
 use tracing::{debug, error, info};
 
-use crate::{core::model::namespace::EDC_NAMESPACE, DataPlaneCfg};
+use crate::{config::DataPlaneCfg, core::model::namespace::EDC_NAMESPACE};
 
 pub async fn register_dataplane(cfg: DataPlaneCfg) {
     loop {

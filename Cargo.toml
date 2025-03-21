@@ -8,10 +8,12 @@ edition = "2021"
 
 
 [workspace.dependencies]
+miwa = { git="https://github.com/miwa-rs/miwa.git" }
 axum = "0.7.9"
 axum-macros = "0.4.2"
 axum-extra = {  version = "0.9.6", features = ["typed-header"]}
 sqlx = {version = "0.8.3", features = ["runtime-tokio-rustls", "uuid", "postgres", "sqlite", "chrono"]}
+async-trait = "0.1.68"
 tokio = {  version= "1.43.0", features=["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version= "0.3.18" , features = ["env-filter"] }

@@ -1,13 +1,10 @@
+use edc_dataplane_core::core::{db::transfer::TransferRepoRef, model::transfer::TransferStatus};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::core::{
-    db::transfer::TransferStoreRef,
-    model::{
-        edr::{EdrClaims, RefreshTokenId, TokenId},
-        token::{TokenRequest, TokenResponse},
-        transfer::TransferStatus,
-    },
+use crate::model::{
+    edr::{EdrClaims, RefreshTokenId, TokenId},
+    token::{TokenRequest, TokenResponse},
 };
 
 use super::{
@@ -18,11 +15,11 @@ use super::{
 #[derive(Clone)]
 pub struct RefreshManager<T: TokenManager> {
     edrs: EdrManager<T>,
-    store: TransferStoreRef,
+    store: TransferRepoRef,
 }
 
 impl<T: TokenManager> RefreshManager<T> {
-    pub fn new(edrs: EdrManager<T>, store: TransferStoreRef) -> Self {
+    pub fn new(edrs: EdrManager<T>, store: TransferRepoRef) -> Self {
         Self { edrs, store }
     }
 
@@ -35,7 +32,7 @@ impl<T: TokenManager> RefreshManager<T> {
             .await?
             .filter(|t| {
                 t.status == TransferStatus::Started
-                    && t.refresh_token_id == claims.claims.jti.into()
+                // && t.refresh_token_id == claims.claims.jti.into()
             })
             .ok_or_else(|| {
                 RefreshError::Generic(anyhow::anyhow!("Transfer not found or not valid"))
@@ -54,8 +51,8 @@ impl<T: TokenManager> RefreshManager<T> {
             )
             .map(Ok)?;
 
-        transfer.refresh_token_id = refresh_token_id;
-        transfer.token_id = token_id;
+        // transfer.refresh_token_id = refresh_token_id;
+        // transfer.token_id = token_id;
         transfer.updated_at = chrono::Utc::now();
 
         self.store.save(transfer).await?;

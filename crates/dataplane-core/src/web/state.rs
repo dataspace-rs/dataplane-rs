@@ -1,44 +1,24 @@
 use axum::extract::FromRef;
 
-use crate::core::service::{
-    refresh::RefreshManager, token::TokenManager, transfer::TransferManager,
-};
+use crate::core::service::transfer::TransferService;
 
 #[derive(Clone)]
-pub struct Context<T: TokenManager + Clone> {
-    transfer_manager: TransferManager<T>,
-    tokens: T,
-    refresh_manager: RefreshManager<T>,
+pub struct Context {
+    transfer_manager: TransferService,
 }
 
-impl<T: TokenManager + Clone> Context<T> {
-    pub fn new(
-        transfer_manager: TransferManager<T>,
-        tokens: T,
-        refresh_manager: RefreshManager<T>,
-    ) -> Self {
-        Self {
-            transfer_manager,
-            tokens,
-            refresh_manager,
-        }
+impl Context {
+    pub fn new(transfer_manager: TransferService) -> Self {
+        Self { transfer_manager }
     }
 
-    pub fn tokens(&self) -> &T {
-        &self.tokens
-    }
-
-    pub fn transfer_manager(&self) -> &TransferManager<T> {
+    pub fn transfer_manager(&self) -> &TransferService {
         &self.transfer_manager
     }
-
-    pub fn refresh_manager(&self) -> &RefreshManager<T> {
-        &self.refresh_manager
-    }
 }
 
-impl<T: TokenManager + Clone> FromRef<Context<T>> for TransferManager<T> {
-    fn from_ref(ctx: &Context<T>) -> TransferManager<T> {
+impl FromRef<Context> for TransferService {
+    fn from_ref(ctx: &Context) -> TransferService {
         ctx.transfer_manager.clone()
     }
 }

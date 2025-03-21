@@ -1,22 +1,20 @@
 use std::str;
 
 use axum::http::{uri::InvalidUri, Uri};
+use edc_dataplane_core::core::model::transfer::types::HttpData;
+use edc_dataplane_core::core::model::transfer::{Transfer, TransferStatus};
 use futures::TryFutureExt;
 use pingora::http::RequestHeader;
 use pingora::{upstreams::peer::HttpPeer, Result};
 use pingora_proxy::{ProxyHttp, Session};
 use tracing::debug;
 
-use crate::core::model::transfer::types::HttpData;
 use crate::{
-    core::{
-        model::{
-            edr::EdrClaims,
-            transfer::{Transfer, TransferStatus},
-        },
+    web::state::Context,
+    {
+        model::edr::EdrClaims,
         service::token::{TokenError, TokenManager},
     },
-    web::state::Context,
 };
 
 const PUBLIC_PATH: &str = "/api/v1/public";
@@ -142,12 +140,13 @@ impl<T: TokenManager + Send + Sync + Clone + 'static> PublicProxy<T> {
 
     async fn fetch_transfer(&self, claims: EdrClaims) -> std::result::Result<Transfer, ProxyError> {
         self.ctx
-            .transfer_manager()
+            .transfers()
             .get(&claims.transfer_id)
             .await
             .map_err(ProxyError::Generic)?
             .filter(|transfer| {
-                transfer.status == TransferStatus::Started && transfer.token_id == claims.jti.into()
+                transfer.status == TransferStatus::Started
+                // && transfer.token_id == claims.jti.into()
             })
             .ok_or_else(|| ProxyError::InvalidTransfer)
     }

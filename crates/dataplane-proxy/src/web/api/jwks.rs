@@ -4,7 +4,7 @@ use reqwest::StatusCode;
 use serde_json::json;
 
 use crate::{
-    core::service::token::{TokenError, TokenManager},
+    service::token::{TokenError, TokenManager},
     web::state::Context,
 };
 

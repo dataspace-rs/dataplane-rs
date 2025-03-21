@@ -1,16 +1,16 @@
 use sqlx::{QueryBuilder, SqlitePool};
 
 use crate::core::{
-    db::transfer::{TransferQuery, TransferStore},
+    db::transfer::{TransferQuery, TransferRepo},
     model::transfer::{Transfer, TransferStatus},
 };
 
 #[derive(Clone)]
-pub struct SqliteTransferStore {
+pub struct SqliteTransferRepo {
     pool: SqlitePool,
 }
 
-impl SqliteTransferStore {
+impl SqliteTransferRepo {
     pub async fn connect(url: &str) -> anyhow::Result<Self> {
         let pool = SqlitePool::connect(url).await?;
         Ok(Self { pool })
@@ -18,7 +18,7 @@ impl SqliteTransferStore {
 }
 
 #[axum::async_trait]
-impl TransferStore for SqliteTransferStore {
+impl TransferRepo for SqliteTransferRepo {
     async fn save(&self, transfer: Transfer) -> anyhow::Result<()> {
         if self.fetch_by_id(&transfer.id).await?.is_none() {
             self.internal_save(transfer).await?;
@@ -87,19 +87,17 @@ impl TransferStore for SqliteTransferStore {
     }
 }
 
-impl SqliteTransferStore {
+impl SqliteTransferRepo {
     async fn internal_save(&self, transfer: Transfer) -> anyhow::Result<()> {
         sqlx::query(
             r#"
-            INSERT INTO transfers (id, status, source, token_id, refresh_token_id, created_at, updated_at)
+            INSERT INTO transfers (id, status, source, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             "#,
         )
         .bind(transfer.id)
         .bind(transfer.status)
         .bind(transfer.source)
-        .bind(transfer.token_id)
-        .bind(transfer.refresh_token_id)
         .bind(transfer.created_at)
         .bind(transfer.updated_at)
         .execute(&self.pool)
@@ -110,12 +108,10 @@ impl SqliteTransferStore {
     async fn internal_update(&self, transfer: Transfer) -> anyhow::Result<()> {
         sqlx::query(
             r#"
-            UPDATE transfers SET token_id=$1, refresh_token_id=$2, updated_at=$3, status=$4
-            WHERE id = $5
+            UPDATE transfers SET updated_at=$1, status=$2
+            WHERE id = $3
             "#,
         )
-        .bind(transfer.token_id)
-        .bind(transfer.refresh_token_id)
         .bind(transfer.updated_at)
         .bind(transfer.status)
         .bind(transfer.id)

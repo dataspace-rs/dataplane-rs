@@ -16,10 +16,17 @@ use edc_connector_client::{
     Auth, EdcConnectorClient,
 };
 use edc_dataplane_core::{
-    core::model::namespace::EDC_NAMESPACE, default_bind, default_db, default_proxy_port,
-    default_refresh_token_duration, default_renewal_port, default_signaling_port,
-    default_token_duration, DataPlane, DataPlaneCfg, DataPlaneHandle, KeyFormat, Proxy, ProxyKeys,
-    Signaling, TokenRenewal,
+    config::{
+        default_bind, default_db, default_signaling_port, DataPlaneCfg, KeyFormat, Signaling,
+    },
+    core::model::namespace::EDC_NAMESPACE,
+    DataPlane, DataPlaneHandle,
+};
+use edc_dataplane_proxy::manager::{manager_from_config, TransferProxyManager};
+
+use edc_dataplane_proxy::config::{
+    default_proxy_port, default_refresh_token_duration, default_renewal_port,
+    default_token_duration, Proxy, ProxyKeys, TokenRenewal,
 };
 use tokio::time::sleep;
 use uuid::Uuid;
@@ -57,34 +64,32 @@ async fn init_dataplane(token_expiration: u64, refresh_token_expiration: u64) ->
     let component_id = Uuid::new_v4();
     let (private_key, public_key) = generate_key_pair();
 
-    let cfg = DataPlaneCfg::builder()
-        .db(default_db())
-        .proxy(
-            Proxy::builder()
-                .issuer("issuer")
-                .proxy_url("http://localhost:8789/api/v1/public")
-                .token_duration(token_expiration)
-                .keys(
-                    ProxyKeys::builder()
-                        .private_key(private_key.into())
-                        .public_key(public_key)
-                        .format(KeyFormat::Pem)
-                        .kid("kid")
-                        .algorithm("EdDSA")
-                        .build(),
-                )
-                .refresh_token_duration(refresh_token_expiration)
-                .token_leeway(0)
-                .renewal(
-                    TokenRenewal::builder()
-                        .bind(default_bind())
-                        .port(default_renewal_port())
-                        .build(),
-                )
-                .bind(default_bind())
-                .port(default_proxy_port())
+    let proxy = Proxy::builder()
+        .issuer("issuer")
+        .proxy_url("http://localhost:8789/api/v1/public")
+        .token_duration(token_expiration)
+        .keys(
+            ProxyKeys::builder()
+                .private_key(private_key.into())
+                .public_key(public_key)
+                .format(KeyFormat::Pem)
+                .kid("kid")
+                .algorithm("EdDSA")
                 .build(),
         )
+        .refresh_token_duration(refresh_token_expiration)
+        .token_leeway(0)
+        .renewal(
+            TokenRenewal::builder()
+                .bind(default_bind())
+                .port(default_renewal_port())
+                .build(),
+        )
+        .bind(default_bind())
+        .port(default_proxy_port())
+        .build();
+    let cfg = DataPlaneCfg::builder()
+        .db(default_db())
         .signaling(
             Signaling::builder()
                 .signaling_url("http://host.docker.internal:8787/api/v1/dataflows")
@@ -98,6 +103,7 @@ async fn init_dataplane(token_expiration: u64, refresh_token_expiration: u64) ->
 
     DataPlane::builder()
         .with_config(cfg)
+        .with_transfer_manager(manager_from_config(proxy).unwrap())
         .prepare()
         .unwrap()
         .start()

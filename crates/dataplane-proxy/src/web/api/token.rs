@@ -8,10 +8,8 @@ use serde_json::json;
 use tracing::error;
 
 use crate::{
-    core::{
-        model::token::{TokenRequest, TokenResponse},
-        service::token::TokenManager,
-    },
+    model::token::{TokenRequest, TokenResponse},
+    service::token::TokenManager,
     web::state::Context,
 };
 

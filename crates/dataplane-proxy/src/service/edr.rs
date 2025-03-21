@@ -1,15 +1,18 @@
 use bon::Builder;
 use chrono::{Duration, Utc};
+use edc_dataplane_core::{
+    core::model::{
+        namespace::{EDC_NAMESPACE, IDSA_NAMESPACE},
+        transfer::Transfer,
+    },
+    signaling::{DataAddress, DataFlowStartMessage, EndpointProperty},
+};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::{
-    core::model::{
-        edr::{Edr, EdrClaims, RefreshTokenId, TokenId},
-        namespace::{EDC_NAMESPACE, IDSA_NAMESPACE},
-        token::{TokenRequest, TokenResponse},
-    },
-    signaling::{DataAddress, DataFlowStartMessage, EndpointProperty},
+use crate::model::{
+    edr::{Edr, EdrClaims, RefreshTokenId, TokenId},
+    token::{TokenRequest, TokenResponse},
 };
 
 use super::token::{TokenError, TokenManager};
@@ -31,7 +34,7 @@ pub struct EdrManager<T: TokenManager> {
 }
 
 impl<T: TokenManager> EdrManager<T> {
-    pub async fn create_edr(&self, req: &DataFlowStartMessage) -> Result<Edr, EdrError> {
+    pub async fn create_edr(&self, req: &Transfer) -> Result<Edr, EdrError> {
         let token_id: TokenId = Uuid::new_v4().into();
         let refresh_token_id: RefreshTokenId = Uuid::new_v4().into();
 
@@ -65,13 +68,13 @@ impl<T: TokenManager> EdrManager<T> {
         &self,
         token_id: TokenId,
         refresh_token_id: RefreshTokenId,
-        req: &DataFlowStartMessage,
+        transfer: &Transfer,
     ) -> Result<Vec<EndpointProperty>, EdrError> {
         let token_response = self.issue_token(
             token_id,
             refresh_token_id,
-            &req.participant_id,
-            &req.process_id,
+            &transfer.participant_id,
+            &transfer.id,
         )?;
         Ok(vec![
             EndpointProperty::builder()
@@ -187,10 +190,9 @@ mod tests {
     use std::collections::HashMap;
 
     use super::*;
-    use crate::core::model::namespace::IDSA_NAMESPACE;
-    use crate::core::service::token::MockTokenManager;
-    use crate::signaling::{DataFlowStartMessage, FlowType};
+    use crate::service::token::MockTokenManager;
     use chrono::Duration;
+    use edc_dataplane_core::{core::model::transfer::TransferStatus, signaling::FlowType};
     use jsonwebtoken::errors::ErrorKind;
     use uuid::Uuid;
 
@@ -217,7 +219,7 @@ mod tests {
             .jwks_url("http://localhost:8080/.well-known/jwks.json")
             .build();
 
-        let req = create_req();
+        let req = create_transfer();
 
         let edr = edr_manager.create_edr(&req).await.unwrap();
 
@@ -275,7 +277,7 @@ mod tests {
             .jwks_url("http://localhost:8080/.well-known/jwks.json")
             .build();
 
-        let req = create_req();
+        let req = create_transfer();
 
         let result = edr_manager.create_edr(&req).await;
 
@@ -286,20 +288,17 @@ mod tests {
         }
     }
 
-    fn create_req() -> DataFlowStartMessage {
-        DataFlowStartMessage::builder()
+    fn create_transfer() -> Transfer {
+        Transfer::builder()
             .participant_id("participant_id".to_string())
-            .process_id("process_id".to_string())
-            .source_data_address(
+            .id("process_id".to_string())
+            .source(
                 DataAddress::builder()
                     .endpoint_type("MyType".to_string())
                     .endpoint_properties(vec![])
                     .build(),
             )
-            .properties(HashMap::new())
-            .flow_type(FlowType::Pull)
-            .dataset_id(Uuid::new_v4().to_string())
-            .agreement_id(Uuid::new_v4().to_string())
+            .status(TransferStatus::Started)
             .build()
     }
 }

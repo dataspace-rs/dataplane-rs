@@ -5,7 +5,7 @@ use axum::{
 use serde_json::{json, Value};
 
 use crate::{
-    core::service::{token::TokenManager, transfer::TransferManager},
+    core::service::transfer::TransferService,
     signaling::{
         DataFlowResponseMessage, DataFlowStartMessage, DataFlowSuspendMessage,
         DataFlowTerminateMessage,
@@ -17,8 +17,8 @@ pub async fn health_check() -> SignalingResult<Json<Value>> {
     Ok(Json(json!({"status": "ok"})))
 }
 
-pub async fn init_flow<T: TokenManager>(
-    State(manager): State<TransferManager<T>>,
+pub async fn init_flow(
+    State(manager): State<TransferService>,
     Json(flow): Json<DataFlowStartMessage>,
 ) -> SignalingResult<Json<WithContext<DataFlowResponseMessage>>> {
     let response = manager.start(flow).await?;
@@ -26,8 +26,8 @@ pub async fn init_flow<T: TokenManager>(
     Ok(Json(WithContext::builder(response).build()?))
 }
 
-pub async fn terminate_flow<T: TokenManager>(
-    State(manager): State<TransferManager<T>>,
+pub async fn terminate_flow(
+    State(manager): State<TransferService>,
     Path(id): Path<String>,
     Json(msg): Json<DataFlowTerminateMessage>,
 ) -> SignalingResult<()> {
@@ -36,8 +36,8 @@ pub async fn terminate_flow<T: TokenManager>(
     Ok(())
 }
 
-pub async fn suspend_flow<T: TokenManager>(
-    State(manager): State<TransferManager<T>>,
+pub async fn suspend_flow(
+    State(manager): State<TransferService>,
     Path(id): Path<String>,
     Json(_msg): Json<DataFlowSuspendMessage>,
 ) -> SignalingResult<()> {

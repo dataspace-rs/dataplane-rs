@@ -1,13 +1,10 @@
 use std::{net::SocketAddr, thread};
 
+use edc_dataplane_core::wait_for_server;
 use pingora::server::{configuration::ServerConf, Server};
 use pingora_proxy::http_proxy_service;
 
-use crate::{
-    core::service::token::TokenManager,
-    web::{state::Context, util::wait_for_server},
-    Proxy,
-};
+use crate::{config::Proxy, service::token::TokenManager, web::state::Context};
 
 use super::public::PublicProxy;
 

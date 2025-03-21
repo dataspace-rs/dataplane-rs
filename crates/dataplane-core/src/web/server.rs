@@ -6,15 +6,13 @@ use tokio::{
     sync::watch::{Receiver, Sender},
 };
 
-use crate::core::service::token::TokenManager;
+use super::util::wait_for_server;
 
-use super::{state::Context, util::wait_for_server};
-
-pub async fn start<T: TokenManager + Send + Sync + Clone + 'static>(
+pub async fn start<T: Clone + Send + Sync + 'static>(
     bind: IpAddr,
     port: u16,
-    app: Router<Context<T>>,
-    state: Context<T>,
+    app: Router<T>,
+    state: T,
     name: &'static str,
 ) -> anyhow::Result<ServerHandle> {
     let app = app.with_state(state);
