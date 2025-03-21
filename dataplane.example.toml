@@ -11,7 +11,8 @@ path = ":memory:"
 control_plane_url = "http://localhost:29192/control"
 signaling_url = "http://host.docker.internal:8787/api/v1/dataflows"
 port = 8787
-
+transfer_types = ["HttpData-PULL"]
+source_types = ["HttpData"]
 
 [proxy]
 issuer="dataplane"

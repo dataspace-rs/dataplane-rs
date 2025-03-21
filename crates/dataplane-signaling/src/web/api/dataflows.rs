@@ -2,16 +2,16 @@ use axum::{
     extract::{Path, State},
     Json,
 };
-use serde_json::{json, Value};
-
-use crate::{
+use edc_dataplane_core::{
     core::service::transfer::TransferService,
     signaling::{
         DataFlowResponseMessage, DataFlowStartMessage, DataFlowSuspendMessage,
         DataFlowTerminateMessage,
     },
-    web::{context::WithContext, error::SignalingResult},
 };
+use serde_json::{json, Value};
+
+use crate::web::{context::WithContext, error::SignalingResult};
 
 pub async fn health_check() -> SignalingResult<Json<Value>> {
     Ok(Json(json!({"status": "ok"})))

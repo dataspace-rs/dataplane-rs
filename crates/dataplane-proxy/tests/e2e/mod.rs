@@ -20,7 +20,6 @@ use edc_dataplane_core::{
         default_bind, default_db, default_signaling_port, DataPlaneCfg, KeyFormat, Signaling,
     },
     core::model::namespace::EDC_NAMESPACE,
-    DataPlane, DataPlaneHandle,
 };
 use edc_dataplane_proxy::manager::{manager_from_config, TransferProxyManager};
 
@@ -28,6 +27,12 @@ use edc_dataplane_proxy::config::{
     default_proxy_port, default_refresh_token_duration, default_renewal_port,
     default_token_duration, Proxy, ProxyKeys, TokenRenewal,
 };
+
+use edc_dataplane_core::extensions::{sql_repo_extension, transfer_service_extension};
+use edc_dataplane_proxy::extensions::transfer_proxy_extension;
+use edc_dataplane_signaling::extensions::registration_extension;
+use miwa::core::{Miwa, MiwaHandle};
+use serde_json::{json, Value};
 use tokio::time::sleep;
 use uuid::Uuid;
 
@@ -49,66 +54,106 @@ fn generate_key_pair() -> (String, String) {
     (key_pair.sk.to_pem(), key_pair.pk.to_pem())
 }
 
-pub async fn launch_data_plane() -> DataPlaneHandle {
+pub async fn launch_data_plane() -> MiwaHandle {
     init_dataplane(default_token_duration(), default_refresh_token_duration()).await
 }
 
 pub async fn launch_data_plane_with_token_duration(
     duration: Duration,
     refresh_token_expiration: Duration,
-) -> DataPlaneHandle {
+) -> MiwaHandle {
     init_dataplane(duration.as_secs(), refresh_token_expiration.as_secs()).await
 }
 
-async fn init_dataplane(token_expiration: u64, refresh_token_expiration: u64) -> DataPlaneHandle {
-    let component_id = Uuid::new_v4();
-    let (private_key, public_key) = generate_key_pair();
+async fn init_dataplane(token_expiration: u64, refresh_token_expiration: u64) -> MiwaHandle {
 
-    let proxy = Proxy::builder()
-        .issuer("issuer")
-        .proxy_url("http://localhost:8789/api/v1/public")
-        .token_duration(token_expiration)
-        .keys(
-            ProxyKeys::builder()
-                .private_key(private_key.into())
-                .public_key(public_key)
-                .format(KeyFormat::Pem)
-                .kid("kid")
-                .algorithm("EdDSA")
-                .build(),
-        )
-        .refresh_token_duration(refresh_token_expiration)
-        .token_leeway(0)
-        .renewal(
-            TokenRenewal::builder()
-                .bind(default_bind())
-                .port(default_renewal_port())
-                .build(),
-        )
-        .bind(default_bind())
-        .port(default_proxy_port())
-        .build();
-    let cfg = DataPlaneCfg::builder()
-        .db(default_db())
-        .signaling(
-            Signaling::builder()
-                .signaling_url("http://host.docker.internal:8787/api/v1/dataflows")
-                .control_plane_url("http://localhost:29192/control")
-                .bind(default_bind())
-                .port(default_signaling_port())
-                .build(),
-        )
-        .component_id(format!("provider-{}", component_id))
-        .build();
+    // let proxy = Proxy::builder()
+    //     .issuer("issuer")
+    //     .proxy_url("http://localhost:8789/api/v1/public")
+    //     .token_duration(token_expiration)
+    //     .keys(
+    //         ProxyKeys::builder()
+    //             .private_key(private_key.into())
+    //             .public_key(public_key)
+    //             .format(KeyFormat::Pem)
+    //             .kid("kid")
+    //             .algorithm("EdDSA")
+    //             .build(),
+    //     )
+    //     .refresh_token_duration(refresh_token_expiration)
+    //     .token_leeway(0)
+    //     .renewal(
+    //         TokenRenewal::builder()
+    //             .bind(default_bind())
+    //             .port(default_renewal_port())
+    //             .build(),
+    //     )
+    //     .bind(default_bind())
+    //     .port(default_proxy_port())
+    //     .build();
+    // let cfg = DataPlaneCfg::builder()
+    //     .db(default_db())
+    //     .signaling(
+    //         Signaling::builder()
+    //             .signaling_url("http://host.docker.internal:8787/api/v1/dataflows")
+    //             .control_plane_url("http://localhost:29192/control")
+    //             .bind(default_bind())
+    //             .port(default_signaling_port())
+    //             .build(),
+    //     )
+    //     .component_id(format!("provider-{}", component_id))
+    //     .build();
 
-    DataPlane::builder()
-        .with_config(cfg)
-        .with_transfer_manager(manager_from_config(proxy).unwrap())
-        .prepare()
+    Miwa::prepare()
+        .with_json(runtime_config())
+        .build()
         .unwrap()
+        .add_extension(sql_repo_extension)
+        .add_extension(transfer_service_extension)
+        .add_extension(transfer_proxy_extension)
+        .add_extension(registration_extension)
         .start()
         .await
         .unwrap()
+    // DataPlane::builder()
+    //     .with_config(cfg)
+    //     .with_transfer_manager(manager_from_config(proxy).unwrap())
+    //     .prepare()
+    //     .unwrap()
+    //     .start()
+    //     .await
+    //     .unwrap()
+}
+
+fn runtime_config() -> Value {
+    let component_id = Uuid::new_v4();
+    let (private_key, public_key) = generate_key_pair();
+    json!({
+        "component_id": component_id,
+        "signaling": {
+            "control_plane_url": "http://localhost:29192/control",
+            "signaling_url": "http://host.docker.internal:8787/api/v1/dataflows",
+            "transfer_types":["HttpData-PULL"],
+            "source_types":["HttpData"]
+        },
+        "proxy": {
+            "issuer": "issuer",
+            "keys": {
+                "kid": "kid",
+                "algorithm": "EdDSA",
+                "format": "Pem",
+                "private_key": private_key,
+                "public_key": public_key,
+            }
+        },
+        "db": {
+            "transfers":{
+                "sqlite": {
+                    "path": ":memory:"
+                }
+            }
+        }
+    })
 }
 
 pub fn setup_consumer_client() -> EdcConnectorClient {

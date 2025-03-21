@@ -1,10 +1,9 @@
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-
-use crate::{
+use edc_dataplane_core::{
     core::model::namespace::{DSPACE_NAMESPACE, EDC_NAMESPACE},
     signaling::DataFlowResponseMessage,
 };
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct WithContext<T> {

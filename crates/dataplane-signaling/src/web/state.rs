@@ -1,6 +1,5 @@
 use axum::extract::FromRef;
-
-use crate::core::service::transfer::TransferService;
+use edc_dataplane_core::core::service::transfer::TransferService;
 
 #[derive(Clone)]
 pub struct Context {

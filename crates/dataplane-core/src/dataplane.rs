@@ -11,7 +11,6 @@ use crate::{
         service::transfer::{TransferManager, TransferManagerRef, TransferService},
     },
     registration::register_dataplane,
-    web::{self, server::ServerHandle, state::Context},
 };
 
 pub struct DataPlane {
@@ -21,7 +20,6 @@ pub struct DataPlane {
 
 pub struct DataPlaneHandle {
     id: String,
-    signaling_server: ServerHandle,
 }
 
 impl DataPlaneHandle {
@@ -63,14 +61,14 @@ impl DataPlane {
 
         tokio::task::spawn(async move { register_dataplane(cfg).await });
 
-        let signaling_server = web::server::start(
-            self.cfg.signaling.bind,
-            self.cfg.signaling.port,
-            web::signaling_app(),
-            ctx.clone(),
-            "signaling",
-        )
-        .await?;
+        // let signaling_server = web::server::start(
+        //     self.cfg.signaling.bind,
+        //     self.cfg.signaling.port,
+        //     web::signaling_app(),
+        //     ctx.clone(),
+        //     "signaling",
+        // )
+        // .await?;
 
         // let token_server = web::server::start(
         //     self.cfg.proxy.renewal.bind,

@@ -91,13 +91,14 @@ impl SqliteTransferRepo {
     async fn internal_save(&self, transfer: Transfer) -> anyhow::Result<()> {
         sqlx::query(
             r#"
-            INSERT INTO transfers (id, status, source, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO transfers (id, status, source, participant_id, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             "#,
         )
         .bind(transfer.id)
         .bind(transfer.status)
         .bind(transfer.source)
+        .bind(transfer.participant_id)
         .bind(transfer.created_at)
         .bind(transfer.updated_at)
         .execute(&self.pool)

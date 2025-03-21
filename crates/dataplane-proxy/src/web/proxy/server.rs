@@ -1,6 +1,6 @@
 use std::{net::SocketAddr, thread};
 
-use edc_dataplane_core::wait_for_server;
+// use edc_dataplane_core::wait_for_server;
 use pingora::server::{configuration::ServerConf, Server};
 use pingora_proxy::http_proxy_service;
 
@@ -24,5 +24,5 @@ pub async fn start<T: TokenManager + Send + Sync + Clone + 'static>(cfg: &Proxy,
         server.run_forever();
     });
 
-    wait_for_server(srv_addr).await;
+    // wait_for_server(srv_addr).await;
 }

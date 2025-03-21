@@ -20,3 +20,4 @@ anyhow.workspace=true
 miwa.workspace=true
 edc-dataplane-core= { path = "../dataplane-core" , version = "0.1.1" }
 edc-dataplane-proxy= { path = "../dataplane-proxy" , version = "0.1.1" }
+edc-dataplane-signaling= { path = "../dataplane-signaling" , version = "0.1.1" }

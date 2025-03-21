@@ -39,7 +39,7 @@ async fn transfer_pull_test_single() {
     let provider = setup_provider_client();
     let mock_server = MockServer::start().await;
 
-    wait_for_dataplane(&provider, handle.id()).await;
+    wait_for_dataplane(&provider, handle.component_id()).await;
 
     let body = json!({
         "name": "Mark",
@@ -138,7 +138,7 @@ async fn transfer_pull_test_with_terminate() {
     let consumer = setup_consumer_client();
     let provider = setup_provider_client();
 
-    wait_for_dataplane(&provider, handle.id()).await;
+    wait_for_dataplane(&provider, handle.component_id()).await;
 
     let data_address = create_data_address("http://localhost:8080".to_string());
 
@@ -188,7 +188,7 @@ async fn transfer_pull_test_with_suspend_and_resume() {
         .mount(&mock_server)
         .await;
 
-    wait_for_dataplane(&provider, handle.id()).await;
+    wait_for_dataplane(&provider, handle.component_id()).await;
 
     let data_address = create_data_address(mock_server.uri());
     let (transfer_id, ..) = seed_transfer_process(&consumer, &provider, data_address).await;
@@ -257,7 +257,7 @@ async fn transfer_pull_test_with_token_expiration() {
         .mount(&mock_server)
         .await;
 
-    wait_for_dataplane(&provider, handle.id()).await;
+    wait_for_dataplane(&provider, handle.component_id()).await;
 
     let data_address = create_data_address(mock_server.uri());
     let (transfer_id, ..) = seed_transfer_process(&consumer, &provider, data_address).await;

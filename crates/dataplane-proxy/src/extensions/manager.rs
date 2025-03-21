@@ -2,12 +2,15 @@ use std::net::IpAddr;
 use std::str::FromStr;
 
 use chrono::Duration;
+use edc_dataplane_core::config::default_bind;
 use edc_dataplane_core::{config::KeyFormat, core::service::transfer::TransferManagerRef};
- use edc_dataplane_core::config::default_bind;
 use jsonwebtoken::Algorithm;
 use miwa::core::ExtensionConfig;
 use miwa::derive::ExtensionConfig;
-use miwa::{core::{Extension, MiwaContext, MiwaResult}, derive::extension};
+use miwa::{
+    core::{Extension, MiwaContext, MiwaResult},
+    derive::extension,
+};
 use secrecy::SecretString;
 use serde::Deserialize;
 
@@ -15,7 +18,6 @@ use crate::service::edr::EdrManager;
 use crate::{manager::TransferProxyManager, service::token::TokenManagerImpl};
 
 pub struct TransferManagerExtension;
-
 
 #[async_trait::async_trait]
 impl Extension for TransferManagerExtension {
@@ -28,13 +30,14 @@ impl Extension for TransferManagerExtension {
     }
 }
 
-
 #[extension(name = "Transfer Pull manager extension", provides(TransferManagerRef))]
-pub async fn transfer_proxy_extension(ctx: &MiwaContext, ExtensionConfig(cfg): ExtensionConfig<Proxy>) -> MiwaResult<TransferManagerExtension> {
+pub async fn transfer_proxy_extension(
+    ctx: &MiwaContext,
+    ExtensionConfig(cfg): ExtensionConfig<Proxy>,
+) -> MiwaResult<TransferManagerExtension> {
     ctx.register(TransferManagerRef::of(manager_from_config(cfg)?));
     Ok(TransferManagerExtension)
 }
-
 
 pub fn manager_from_config(proxy: Proxy) -> anyhow::Result<TransferProxyManager<TokenManagerImpl>> {
     let token_manager = create_token_manager(proxy.clone())?;

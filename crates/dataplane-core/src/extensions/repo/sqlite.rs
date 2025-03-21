@@ -21,7 +21,7 @@ impl Extension for SqliteRepoExtension {
 
 #[derive(Deserialize, ExtensionConfig)]
 #[config(prefix = "db.transfers")]
-#[serde(rename_all="lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum TransferDbConfig {
     Sqlite { path: String },
 }

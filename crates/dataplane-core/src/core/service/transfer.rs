@@ -79,10 +79,10 @@ pub trait TransferManager {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use chrono::Duration;
+    use futures::FutureExt;
     use jsonwebtoken::errors::ErrorKind;
+    use std::collections::HashMap;
     use uuid::Uuid;
 
     use crate::{
@@ -102,9 +102,13 @@ mod tests {
         let mut transfer_manager = MockTransferManager::new();
         let mut store = MockTransferRepo::new();
 
-        // token_manager
-        //     .expect_issue::<EdrClaims>()
-        //     .returning(|_: &EdrClaims| Ok("token".to_string()));
+        transfer_manager
+            .expect_can_handle()
+            .returning(|_| futures::future::ok(true).boxed());
+
+        transfer_manager
+            .expect_handle_start()
+            .returning(|_| futures::future::ok(Some(create_data_address())).boxed());
 
         store
             .expect_save()
@@ -122,16 +126,7 @@ mod tests {
             .expect("Data address is missing");
 
         assert_eq!(data_address.endpoint_type, IDSA_NAMESPACE.to_iri("HTTP"));
-        assert_eq!(data_address.endpoint_properties.len(), 7);
-
-        assert_eq!(
-            data_address.get_property(&EDC_NAMESPACE.to_iri("access_token")),
-            Some("token")
-        );
-        // assert_eq!(
-        //     data_address.get_property(&EDC_NAMESPACE.to_iri("endpoint")),
-        //     Some(manager.edrs.proxy_url.as_ref())
-        // );
+        assert_eq!(data_address.endpoint_properties.len(), 0);
     }
 
     #[tokio::test]
@@ -139,9 +134,13 @@ mod tests {
         let mut transfer_manager = MockTransferManager::new();
         let mut store = MockTransferRepo::new();
 
-        // token_manager
-        //     .expect_issue::<EdrClaims>()
-        //     .returning(|_: &EdrClaims| Ok("token".to_string()));
+        transfer_manager
+            .expect_can_handle()
+            .returning(|_| futures::future::ok(true).boxed());
+
+        transfer_manager
+            .expect_handle_start()
+            .returning(|_| futures::future::ok(Some(create_data_address())).boxed());
 
         store
             .expect_save()
@@ -157,13 +156,17 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn start_transfer_fails_when_token_creation_fails() {
+    async fn start_transfer_fails_when_manager_fails() {
         let mut transfer_manager = MockTransferManager::new();
         let store = MockTransferRepo::new();
 
-        // token_manager
-        //     .expect_issue::<EdrClaims>()
-        //     .returning(|_: &EdrClaims| Err(TokenError::Encode(ErrorKind::InvalidAlgorithm.into())));
+        transfer_manager
+            .expect_can_handle()
+            .returning(|_| futures::future::ok(true).boxed());
+
+        transfer_manager
+            .expect_handle_start()
+            .returning(|_| futures::future::err(anyhow::anyhow!("Failed to handle start")).boxed());
 
         let manager = create_transfer_manager(transfer_manager, store);
 
@@ -171,7 +174,7 @@ mod tests {
 
         let result = manager.start(req).await.unwrap_err();
 
-        assert_eq!(result.to_string(), "Error encoding token");
+        assert_eq!(result.to_string(), "Failed to handle start");
     }
 
     fn create_transfer_manager(
@@ -191,6 +194,13 @@ mod tests {
         let store = TransferRepoRef::of(mock_store);
 
         TransferService::new(manager, store)
+    }
+
+    fn create_data_address() -> DataAddress {
+        DataAddress::builder()
+            .endpoint_type(IDSA_NAMESPACE.to_iri("HTTP"))
+            .endpoint_properties(vec![])
+            .build()
     }
 
     fn create_req() -> DataFlowStartMessage {
