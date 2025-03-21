@@ -1,6 +1,6 @@
-use axum::async_trait;
+use async_trait::async_trait;
 use bon::{builder, Builder};
-use edc_dataplane_macros::interface;
+use miwa::derive::interface;
 
 use crate::core::model::transfer::{Transfer, TransferStatus};
 
@@ -10,7 +10,7 @@ use mockall::{automock, predicate::*};
 #[async_trait]
 #[interface]
 #[cfg_attr(test, automock)]
-pub trait TransferStore {
+pub trait TransferRepo {
     async fn save(&self, transfer: Transfer) -> anyhow::Result<()>;
     async fn fetch_by_id(&self, transfer_id: &str) -> anyhow::Result<Option<Transfer>>;
     async fn delete(&self, transfer_id: &str) -> anyhow::Result<()>;

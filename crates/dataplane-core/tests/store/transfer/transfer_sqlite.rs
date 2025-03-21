@@ -1,14 +1,14 @@
-use axum::async_trait;
-use edc_dataplane_core::core::db::sqlx::transfer::sqlite::SqliteTransferStore;
+use async_trait::async_trait;
+use edc_dataplane_core::core::db::sqlite::transfer::SqliteTransferRepo;
 
 use crate::{generate_transfer_store_tests, store::Tester};
 
-pub struct SqliteTester(SqliteTransferStore);
+pub struct SqliteTester(SqliteTransferRepo);
 
 #[async_trait]
-impl Tester<SqliteTransferStore> for SqliteTester {
+impl Tester<SqliteTransferRepo> for SqliteTester {
     async fn create() -> Self {
-        let store = SqliteTransferStore::connect("sqlite::memory:")
+        let store = SqliteTransferRepo::connect("sqlite::memory:")
             .await
             .unwrap();
 
@@ -16,7 +16,7 @@ impl Tester<SqliteTransferStore> for SqliteTester {
         SqliteTester(store)
     }
 
-    fn store(&self) -> &SqliteTransferStore {
+    fn store(&self) -> &SqliteTransferRepo {
         &self.0
     }
 }

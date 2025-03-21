@@ -29,12 +29,6 @@ pub struct DataFlowResponseMessage {
     pub data_address: Option<DataAddress>,
 }
 
-impl Default for DataFlowResponseMessage {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DataFlowTerminateMessage {
@@ -50,14 +44,8 @@ pub struct DataFlowSuspendMessage {
 impl DataFlowTerminateMessage {}
 
 impl DataFlowResponseMessage {
-    pub fn new() -> Self {
-        Self { data_address: None }
-    }
-
-    pub fn with_data_address(data_address: DataAddress) -> Self {
-        Self {
-            data_address: Some(data_address),
-        }
+    pub fn new(data_address: Option<DataAddress>) -> Self {
+        Self { data_address }
     }
 }
 

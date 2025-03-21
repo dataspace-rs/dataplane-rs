@@ -1,44 +1,48 @@
+use async_trait::async_trait;
+use miwa::derive::interface;
+
+use miwa::derive::Injectable;
+#[cfg(test)]
+use mockall::{automock, predicate::*};
 use tracing::debug;
 
 use crate::{
     core::{
-        db::transfer::TransferStoreRef,
-        model::transfer::{types::TransferKind, Transfer, TransferStatus},
+        db::transfer::TransferRepoRef,
+        model::transfer::{Transfer, TransferStatus},
     },
-    signaling::{DataFlowResponseMessage, DataFlowStartMessage},
+    signaling::{DataAddress, DataFlowResponseMessage, DataFlowStartMessage},
 };
 
-use super::{edr::EdrManager, token::TokenManager};
-
-#[derive(Clone)]
-pub struct TransferManager<T: TokenManager> {
-    db: TransferStoreRef,
-    pub(crate) edrs: EdrManager<T>,
+#[derive(Clone, Injectable)]
+pub struct TransferService {
+    manager: TransferManagerRef,
+    db: TransferRepoRef,
 }
 
-impl<T: TokenManager> TransferManager<T> {
-    pub fn new(edrs: EdrManager<T>, db: TransferStoreRef) -> Self {
-        Self { db, edrs }
+impl TransferService {
+    pub fn new(manager: TransferManagerRef, db: TransferRepoRef) -> Self {
+        Self { manager, db }
     }
 
     pub async fn start(
         &self,
         req: DataFlowStartMessage,
     ) -> anyhow::Result<DataFlowResponseMessage> {
-        let edr = self.edrs.create_edr(&req).await?;
-
-        let _ = TransferKind::try_from(&req.source_data_address)?;
-
         let transfer = Transfer::builder()
             .id(req.process_id.clone())
+            .participant_id(req.participant_id.clone())
             .source(req.source_data_address)
             .status(TransferStatus::Started)
-            .refresh_token_id(edr.refresh_token_id)
-            .token_id(edr.token_id)
             .build();
 
-        self.db.save(transfer).await?;
-        Ok(DataFlowResponseMessage::with_data_address(edr.data_address))
+        if self.manager.can_handle(&transfer).await? {
+            let address = self.manager.handle_start(&transfer).await?;
+            self.db.save(transfer).await?;
+            Ok(DataFlowResponseMessage::new(address))
+        } else {
+            Err(anyhow::anyhow!("Transfer not supported"))
+        }
     }
 
     pub async fn get(&self, id: &str) -> anyhow::Result<Option<Transfer>> {
@@ -60,45 +64,52 @@ impl<T: TokenManager> TransferManager<T> {
     }
 }
 
+#[async_trait]
+#[interface]
+#[cfg_attr(test, automock)]
+pub trait TransferManager {
+    async fn can_handle(&self, transfer: &Transfer) -> anyhow::Result<bool>;
+    async fn handle_start(&self, transfer: &Transfer) -> anyhow::Result<Option<DataAddress>>;
+    async fn handle_suspend(&self, id: &str) -> anyhow::Result<()>;
+    async fn handle_terminate(&self, id: &str) -> anyhow::Result<()>;
+}
+
 #[cfg(test)]
 mod tests {
+    use futures::FutureExt;
     use std::collections::HashMap;
-
-    use chrono::Duration;
-    use jsonwebtoken::errors::ErrorKind;
     use uuid::Uuid;
 
     use crate::{
         core::{
-            db::transfer::{MockTransferStore, TransferStoreRef},
-            model::{
-                edr::EdrClaims,
-                namespace::{EDC_NAMESPACE, IDSA_NAMESPACE},
-            },
-            service::{
-                edr::EdrManager,
-                token::{MockTokenManager, TokenError},
-            },
+            db::transfer::{MockTransferRepo, TransferRepoRef},
+            model::namespace::{EDC_NAMESPACE, IDSA_NAMESPACE},
         },
         signaling::{DataAddress, DataFlowStartMessage, EndpointProperty, FlowType},
     };
 
-    use super::TransferManager;
+    use super::{MockTransferManager, TransferManagerRef, TransferService};
 
     #[tokio::test]
     async fn start_transfer() {
-        let mut token_manager = MockTokenManager::new();
-        let mut store = MockTransferStore::new();
+        // let mut token_manager = MockTokenManager::new();
+        //
+        let mut transfer_manager = MockTransferManager::new();
+        let mut store = MockTransferRepo::new();
 
-        token_manager
-            .expect_issue::<EdrClaims>()
-            .returning(|_: &EdrClaims| Ok("token".to_string()));
+        transfer_manager
+            .expect_can_handle()
+            .returning(|_| futures::future::ok(true).boxed());
+
+        transfer_manager
+            .expect_handle_start()
+            .returning(|_| futures::future::ok(Some(create_data_address())).boxed());
 
         store
             .expect_save()
             .returning(|_| Box::pin(async { Ok(()) }));
 
-        let manager = create_transfer_manager(token_manager, store);
+        let manager = create_transfer_manager(transfer_manager, store);
 
         let req = create_req();
 
@@ -110,32 +121,27 @@ mod tests {
             .expect("Data address is missing");
 
         assert_eq!(data_address.endpoint_type, IDSA_NAMESPACE.to_iri("HTTP"));
-        assert_eq!(data_address.endpoint_properties.len(), 7);
-
-        assert_eq!(
-            data_address.get_property(&EDC_NAMESPACE.to_iri("access_token")),
-            Some("token")
-        );
-        assert_eq!(
-            data_address.get_property(&EDC_NAMESPACE.to_iri("endpoint")),
-            Some(manager.edrs.proxy_url.as_ref())
-        );
+        assert_eq!(data_address.endpoint_properties.len(), 0);
     }
 
     #[tokio::test]
     async fn start_transfer_fails_when_store_fails() {
-        let mut token_manager = MockTokenManager::new();
-        let mut store = MockTransferStore::new();
+        let mut transfer_manager = MockTransferManager::new();
+        let mut store = MockTransferRepo::new();
 
-        token_manager
-            .expect_issue::<EdrClaims>()
-            .returning(|_: &EdrClaims| Ok("token".to_string()));
+        transfer_manager
+            .expect_can_handle()
+            .returning(|_| futures::future::ok(true).boxed());
+
+        transfer_manager
+            .expect_handle_start()
+            .returning(|_| futures::future::ok(Some(create_data_address())).boxed());
 
         store
             .expect_save()
             .returning(|_| Box::pin(async { Err(anyhow::anyhow!("Failed to save")) }));
 
-        let manager = create_transfer_manager(token_manager, store);
+        let manager = create_transfer_manager(transfer_manager, store);
 
         let req = create_req();
 
@@ -145,39 +151,51 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn start_transfer_fails_when_token_creation_fails() {
-        let mut token_manager = MockTokenManager::new();
-        let store = MockTransferStore::new();
+    async fn start_transfer_fails_when_manager_fails() {
+        let mut transfer_manager = MockTransferManager::new();
+        let store = MockTransferRepo::new();
 
-        token_manager
-            .expect_issue::<EdrClaims>()
-            .returning(|_: &EdrClaims| Err(TokenError::Encode(ErrorKind::InvalidAlgorithm.into())));
+        transfer_manager
+            .expect_can_handle()
+            .returning(|_| futures::future::ok(true).boxed());
 
-        let manager = create_transfer_manager(token_manager, store);
+        transfer_manager
+            .expect_handle_start()
+            .returning(|_| futures::future::err(anyhow::anyhow!("Failed to handle start")).boxed());
+
+        let manager = create_transfer_manager(transfer_manager, store);
 
         let req = create_req();
 
         let result = manager.start(req).await.unwrap_err();
 
-        assert_eq!(result.to_string(), "Error encoding token");
+        assert_eq!(result.to_string(), "Failed to handle start");
     }
 
     fn create_transfer_manager(
-        mock: MockTokenManager,
-        mock_store: MockTransferStore,
-    ) -> TransferManager<MockTokenManager> {
-        let edr = EdrManager::builder()
-            .tokens(mock)
-            .proxy_url("http://localhost:8080/public")
-            .issuer("issuer")
-            .token_duration(Duration::days(1))
-            .token_url("http://localhost:8080/token")
-            .jwks_url("http://localhost:8080/.well-known/jwks.json")
-            .build();
+        mock: MockTransferManager,
+        mock_store: MockTransferRepo,
+    ) -> TransferService {
+        // let edr = EdrManager::builder()
+        //     .tokens(mock)
+        //     .proxy_url("http://localhost:8080/public")
+        //     .issuer("issuer")
+        //     .token_duration(Duration::days(1))
+        //     .token_url("http://localhost:8080/token")
+        //     .jwks_url("http://localhost:8080/.well-known/jwks.json")
+        //     .build();
 
-        let store = TransferStoreRef::of(mock_store);
+        let manager = TransferManagerRef::of(mock);
+        let store = TransferRepoRef::of(mock_store);
 
-        TransferManager::new(edr, store)
+        TransferService::new(manager, store)
+    }
+
+    fn create_data_address() -> DataAddress {
+        DataAddress::builder()
+            .endpoint_type(IDSA_NAMESPACE.to_iri("HTTP"))
+            .endpoint_properties(vec![])
+            .build()
     }
 
     fn create_req() -> DataFlowStartMessage {

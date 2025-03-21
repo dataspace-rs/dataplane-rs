@@ -24,9 +24,10 @@ changelog_update = true
 git_tag_enable = true
 
 [[package]]
-name = "edc-dataplane-macros"
+name = "edc-dataplane-signaling"
 publish = true
 release = true
 git_release_enable = true
-changelog_update = false
+changelog_path = "crates/dataplane-signaling/CHANGELOG.md"
+changelog_update = true
 git_tag_enable = true
