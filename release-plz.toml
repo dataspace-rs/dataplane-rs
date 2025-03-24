@@ -31,3 +31,12 @@ git_release_enable = true
 changelog_path = "crates/dataplane-signaling/CHANGELOG.md"
 changelog_update = true
 git_tag_enable = true
+
+[[package]]
+name = "edc-dataplane-proxy"
+publish = true
+release = true
+git_release_enable = true
+changelog_path = "crates/dataplane-proxy/CHANGELOG.md"
+changelog_update = true
+git_tag_enable = true

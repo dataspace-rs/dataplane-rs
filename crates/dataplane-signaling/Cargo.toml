@@ -3,6 +3,10 @@ name = "edc-dataplane-signaling"
 version = "0.1.1"
 license.workspace = true
 edition.workspace = true
+description= "An EDC compatible dataplane"
+repository = "https://github.com/dataspace-rs/dataplane-rs"
+keywords = ["dataspace", "http", "dataplane"]
+categories = []
 
 [dependencies]
 edc-dataplane-core = {  path = "../dataplane-core", version = "0.1.1" }
