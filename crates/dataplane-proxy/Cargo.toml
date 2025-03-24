@@ -11,7 +11,7 @@ categories = []
 
 readme = "README.md"
 [dependencies]
-edc-dataplane-core = {  path = "../dataplane-core", version = "0.1.1" }
+edc-dataplane-core = {  path = "../dataplane-core", version = "0.2.0" }
 miwa.workspace=true
 axum.workspace=true
 axum-macros.workspace=true
