@@ -1,2 +1,2 @@
-pub mod sqlx;
+pub mod sqlite;
 pub mod transfer;

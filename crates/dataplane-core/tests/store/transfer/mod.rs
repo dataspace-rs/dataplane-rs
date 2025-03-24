@@ -1,6 +1,6 @@
 use crate::store::Tester;
 use edc_dataplane_core::core::db::transfer::TransferQuery;
-use edc_dataplane_core::core::db::transfer::TransferStore;
+use edc_dataplane_core::core::db::transfer::TransferRepo;
 use edc_dataplane_core::{
     core::model::transfer::{Transfer, TransferStatus},
     signaling::DataAddress,
@@ -18,13 +18,12 @@ pub fn create_transfer(id: &str) -> Transfer {
                 .endpoint_properties(vec![])
                 .build(),
         )
-        .refresh_token_id(Uuid::new_v4().into())
-        .token_id(Uuid::new_v4().into())
+        .participant_id("participant_id".to_string())
         .status(TransferStatus::Started)
         .build()
 }
 
-pub async fn save<T: TransferStore>(tester: impl Tester<T>) {
+pub async fn save<T: TransferRepo>(tester: impl Tester<T>) {
     let store = tester.store();
 
     let id = Uuid::new_v4().to_string();
@@ -38,7 +37,7 @@ pub async fn save<T: TransferStore>(tester: impl Tester<T>) {
     assert_eq!(saved, transfer);
 }
 
-pub async fn update<T: TransferStore>(tester: impl Tester<T>) {
+pub async fn update<T: TransferRepo>(tester: impl Tester<T>) {
     let store = tester.store();
 
     let transfer = create_transfer("1");
@@ -58,7 +57,7 @@ pub async fn update<T: TransferStore>(tester: impl Tester<T>) {
     assert_eq!(transfers[0], updated);
 }
 
-pub async fn delete<T: TransferStore>(tester: impl Tester<T>) {
+pub async fn delete<T: TransferRepo>(tester: impl Tester<T>) {
     let store = tester.store();
 
     let transfer = create_transfer(&Uuid::new_v4().to_string());
@@ -78,7 +77,7 @@ pub async fn delete<T: TransferStore>(tester: impl Tester<T>) {
     assert_eq!(transfers.len(), 1);
 }
 
-pub async fn change_status<T: TransferStore>(tester: impl Tester<T>) {
+pub async fn change_status<T: TransferRepo>(tester: impl Tester<T>) {
     let store = tester.store();
 
     let transfer = create_transfer("1");

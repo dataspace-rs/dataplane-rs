@@ -1,0 +1,19 @@
+[package]
+name = "edc-dataplane-signaling"
+version = "0.1.1"
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+edc-dataplane-core = {  path = "../dataplane-core", version = "0.1.1" }
+miwa.workspace=true
+axum.workspace=true
+axum-macros.workspace=true
+axum-extra.workspace=true
+anyhow.workspace=true
+tokio.workspace=true
+serde.workspace=true
+serde_json.workspace=true
+tracing.workspace=true
+reqwest.workspace=true
+async-trait.workspace=true
