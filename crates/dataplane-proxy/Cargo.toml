@@ -1,7 +1,7 @@
 
 [package]
 name = "edc-dataplane-proxy"
-version = "0.1.1"
+version = "0.1.2"
 license.workspace = true
 edition.workspace = true
 description= "An EDC compatible dataplane"
@@ -11,7 +11,7 @@ categories = []
 
 readme = "README.md"
 [dependencies]
-edc-dataplane-core = {  path = "../dataplane-core", version = "0.2.0" }
+edc-dataplane-core = {  path = "../dataplane-core", version = "0.2.1" }
 miwa.workspace=true
 axum.workspace=true
 axum-macros.workspace=true
@@ -42,4 +42,4 @@ mockall.workspace=true
 wiremock.workspace=true
 reqwest.workspace=true
 edc-connector-client.workspace=true
-edc-dataplane-signaling = {  path = "../dataplane-signaling", version = "0.1.1" }
+edc-dataplane-signaling = {  path = "../dataplane-signaling", version = "0.1.2" }

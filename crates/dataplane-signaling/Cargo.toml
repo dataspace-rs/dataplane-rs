@@ -1,6 +1,6 @@
 [package]
 name = "edc-dataplane-signaling"
-version = "0.1.1"
+version = "0.1.2"
 license.workspace = true
 edition.workspace = true
 description= "An EDC compatible dataplane"
@@ -9,7 +9,7 @@ keywords = ["dataspace", "http", "dataplane"]
 categories = []
 
 [dependencies]
-edc-dataplane-core = {  path = "../dataplane-core", version = "0.2.0" }
+edc-dataplane-core = {  path = "../dataplane-core", version = "0.2.1" }
 miwa.workspace=true
 axum.workspace=true
 axum-macros.workspace=true
