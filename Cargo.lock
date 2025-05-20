@@ -869,7 +869,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "edc-dataplane-core",
@@ -883,7 +883,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane-core"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -905,7 +905,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane-proxy"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -941,7 +941,7 @@ dependencies = [
 
 [[package]]
 name = "edc-dataplane-signaling"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "async-trait",
