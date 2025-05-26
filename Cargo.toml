@@ -14,7 +14,7 @@ axum-macros = "0.4.2"
 axum-extra = {  version = "0.9.6", features = ["typed-header"]}
 sqlx = {version = "0.8.6", features = ["runtime-tokio-rustls", "uuid", "postgres", "sqlite", "chrono"]}
 async-trait = "0.1.68"
-tokio = {  version= "1.43.0", features=["full"] }
+tokio = {  version= "1.45.1", features=["full"] }
 tracing = "0.1.40"
 tracing-subscriber = { version= "0.3.18" , features = ["env-filter"] }
 serde = "1"
