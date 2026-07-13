@@ -61,7 +61,7 @@ impl<T: TokenManager> RefreshManager<T> {
             .issue_token(
                 token_id,
                 refresh_token_id,
-                &claims.claims.sub,
+                &claims.claims.subject,
                 &claims.claims.transfer_id,
             )
             .map(Ok)?;

@@ -75,7 +75,7 @@ impl<T: TokenManager> EdrManager<T> {
         self.issue_token(
             token_id,
             refresh_token_id,
-            &claims.claims.sub,
+            &claims.claims.subject,
             &claims.claims.transfer_id,
         )
     }
@@ -150,7 +150,7 @@ impl<T: TokenManager> EdrManager<T> {
             .jti(jti)
             .iss(self.issuer.clone())
             .aud(self.proxy_url.clone())
-            .sub(participant_id.to_string())
+            .subject(participant_id.to_string())
             .exp(exp.timestamp())
             .iat(now.timestamp())
             .transfer_id(process_id.to_string())
@@ -219,7 +219,7 @@ mod tests {
             .withf(|claims| {
                 claims.iss == "issuer".to_string()
                     && claims.aud == "http://localhost:8080/public".to_string()
-                    && claims.sub == "participant_id".to_string()
+                    && claims.subject == "participant_id".to_string()
                     && claims.transfer_id == "process_id".to_string()
             })
             .returning(|_: &EdrClaims| Ok("token".to_string()));
