@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use bon::{builder, Builder};
+use bon::Builder;
 use miwa::derive::interface;
 
 use crate::core::model::transfer::{Transfer, TransferStatus};
