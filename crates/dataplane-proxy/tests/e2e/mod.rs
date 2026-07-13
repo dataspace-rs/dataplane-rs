@@ -28,7 +28,7 @@ use uuid::Uuid;
 
 mod transfer;
 
-pub const PROVIDER_PROTOCOL: &str = "http://provider-connector:9194/protocol";
+pub const PROVIDER_PROTOCOL: &str = "http://provider-connector:9194/protocol/2025-1";
 pub const PROVIDER_ID: &str = "provider";
 
 pub fn setup_provider_client() -> EdcConnectorClient {

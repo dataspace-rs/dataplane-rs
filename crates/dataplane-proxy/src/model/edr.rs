@@ -37,7 +37,8 @@ pub struct EdrClaims {
     pub jti: Uuid,
     pub aud: String,
     pub iss: String,
-    pub sub: String,
+    #[serde(rename = "sub")]
+    pub subject: String,
     exp: i64,
     iat: i64,
     pub transfer_id: String,
